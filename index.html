@@ -1644,7 +1644,7 @@
             
             if (penalties && penalties.length > 0) {
                 const penaltyTypes = {
-                    'grade_deduction': 'حسم علامات',
+                    'warning': 'تنبيه',
                     'warning': 'إنذار',
                     'internal_transfer': 'نقل داخلي',
                     'external_transfer': 'نقل خارجي',
@@ -1747,7 +1747,7 @@
 
             // Show recent penalties
             const penaltyTypes = {
-                'grade_deduction': 'حسم علامات',
+                'warning': 'تنبيه',
                 'warning': 'إنذار',
                 'internal_transfer': 'نقل داخلي',
                 'external_transfer': 'نقل خارجي',
@@ -2073,7 +2073,7 @@
 
         function exportStudentPenalties() {
             const penaltyTypes = {
-                'grade_deduction': 'حسم علامات',
+                'warning': 'تنبيه',
                 'warning': 'إنذار',
                 'internal_transfer': 'نقل داخلي',
                 'external_transfer': 'نقل خارجي',
@@ -2292,7 +2292,7 @@
                             <label class="block text-gray-700 font-semibold mb-2">نوع العقوبة</label>
                             <select id="penaltyType" class="w-full p-3 border border-gray-300 rounded-lg" onchange="toggleGradeDeduction()">
                                 <option value="">اختر نوع العقوبة</option>
-                                <option value="grade_deduction">حسم علامات</option>
+                                <option value="warning">تنبيه</option>
                                 <option value="warning">إنذار</option>
                                 <option value="internal_transfer">نقل داخلي</option>
                                 <option value="external_transfer">نقل خارجي</option>
@@ -2336,11 +2336,7 @@
             const penaltyType = document.getElementById('penaltyType').value;
             const gradeField = document.getElementById('gradeDeductionField');
             
-            if (penaltyType === 'grade_deduction') {
-                gradeField.classList.remove('hidden');
-            } else {
-                gradeField.classList.add('hidden');
-            }
+            gradeField.classList.add('hidden');
         }
 
         async function addStudentPenalty(studentId) {
@@ -2352,10 +2348,6 @@
                 issued_by: currentUser.full_name,
                 created_at: new Date().toISOString()
             };
-
-            if (penaltyData.type === 'grade_deduction') {
-                penaltyData.grade_deduction_amount = document.getElementById('gradeDeductionAmount').value;
-            }
 
             if (!penaltyData.type || !penaltyData.reason) {
                 showNotification('يرجى ملء جميع الحقول المطلوبة', 'error');
@@ -4499,3 +4491,4 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
