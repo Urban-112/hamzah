@@ -2703,21 +2703,23 @@
 
         // Registration Function
         async function register() {
-            const userType = document.getElementById('regUserType').value;
-            
-            if (!userType) {
-                showNotification('يرجى اختيار نوع الحساب', 'error');
-                return;
-            }
+    const userType = document.getElementById('regUserType').value;
+    if (!userType) {
+        showNotification('يرجى اختيار نوع الحساب', 'error');
+        return;
+    }
 
-            // Check if registration is allowed
-            if (userType === 'student') {
-                const section = document.getElementById('studentSection').value;
-                if (!isRegistrationAllowed(section)) {
-                    showNotification('التسجيل مغلق حالياً لهذه الشعبة', 'error');
-                    return;
-                }
-            }
+    // تحميل إعدادات التسجيل من Supabase مباشرة قبل كل تسجيل
+    await loadRegistrationSettings();
+
+    // Check if registration is allowed
+    if (userType === 'student') {
+        const section = document.getElementById('studentSection').value;
+        if (!isRegistrationAllowed(section)) {
+            showNotification('التسجيل مغلق حالياً لهذه الشعبة', 'error');
+            return;
+        }
+    }
 
             const username = document.getElementById('regUsername').value;
             const password = document.getElementById('regPassword').value;
@@ -4452,33 +4454,48 @@
             saveRegistrationSettings();
         }
 
-        function saveRegistrationSettings() {
-            try {
-                localStorage.setItem('registrationSettings', JSON.stringify(registrationSettings));
-            } catch (error) {
-                console.error('Error saving registration settings:', error);
-            }
-        }
+       async function saveRegistrationSettings() {
+    try {
+        const { error } = await supabase
+            .from('registration_settings')
+            .update({
+                school_wide_open: registrationSettings.schoolWideOpen,
+                section_settings: registrationSettings.sectionSettings,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', 1);
 
-        function loadRegistrationSettings() {
-            try {
-                const saved = localStorage.getItem('registrationSettings');
-                if (saved) {
-                    registrationSettings = JSON.parse(saved);
-                }
-            } catch (error) {
-                console.error('Error loading registration settings:', error);
-                registrationSettings = {
-                    schoolWideOpen: true,
-                    sectionSettings: {}
-                };
-            }
-        }
+        if (error) throw error;
+    } catch (error) {
+        console.error('Error saving registration settings:', error);
+    }
+}
 
+       async function loadRegistrationSettings() {
+    try {
+        const { data, error } = await supabase
+            .from('registration_settings')
+            .select('*')
+            .order('id', { ascending: true })
+            .limit(1)
+            .single();
+
+        if (error) throw error;
+        if (data) {
+            registrationSettings = {
+                schoolWideOpen: data.school_wide_open,
+                sectionSettings: data.section_settings || {}
+            };
+        }
+    } catch (error) {
+        console.error('Error loading registration settings:', error);
+        registrationSettings = { schoolWideOpen: true, sectionSettings: {} };
+    }
+}
         // Initialize registration settings on app start
-        document.addEventListener('DOMContentLoaded', function() {
-            loadRegistrationSettings();
-        });
+        document.addEventListener('DOMContentLoaded', async function() {
+    await loadRegistrationSettings();
+});
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
