@@ -1693,32 +1693,36 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             }
         }
 
-        function loadTeacherPenalties() {
-            const penalties = allTeacherPenalties.filter(penalty => penalty.teacher_id === currentUser.id);
-            const penaltiesContainer = document.getElementById('teacherPenalties');
-            
-            if (penalties && penalties.length > 0) {
-                const penaltyTypes = {
-                    'warning': 'تنبيه',
-                    'notice': 'إنذار',
-                    'no_pay': 'عدم صرف',
-                    'deduction': 'حسم 3 أيام'
-                };
+       function loadTeacherPenalties() {
+         const penalties = allTeacherPenalties.filter(penalty => penalty.teacher_id === currentUser.id);
+         const penaltiesContainer = document.getElementById('teacherPenalties');
+    
+             if (penalties && penalties.length > 0) {
+             const penaltyTypes = {
+              'warning': 'تنبيه',
+              'notice': 'إنذار',
+              'no_pay': 'عدم صرف',
+              'deduction': 'حسم 3 أيام'
+        };
 
-                penaltiesContainer.innerHTML = penalties.map(penalty => `
-                    <div class="bg-white p-3 rounded border border-red-200">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold text-red-700">${penaltyTypes[penalty.type]}</span>
-                            <span class="text-sm text-gray-600">${penalty.date}</span>
-                        </div>
-                        <p class="text-sm text-gray-700 mt-1">${penalty.reason}</p>
-                    </div>
-                `).join('');
-            } else {
-                penaltiesContainer.innerHTML = '<p class="text-gray-500">لا توجد عقوبات مسجلة</p>';
-            }
-        }
-
+        penaltiesContainer.innerHTML = penalties.map(penalty => `
+            <div class="bg-white p-3 rounded border border-red-200">
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold text-red-700">${penaltyTypes[penalty.type]}</span>
+                    <span class="text-sm text-gray-600">${penalty.date}</span>
+                </div>
+                <p class="text-sm text-gray-700 mt-1">${penalty.reason}</p>
+                ${currentUserType === 'admin' ? `
+                    <button onclick="deleteTeacherPenalty('${penalty.id}')" class="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">
+                        <i class="fas fa-trash mr-1"></i> حذف العقوبة
+                    </button>
+                ` : ''}
+            </div>
+        `).join('');
+    } else {
+        penaltiesContainer.innerHTML = '<p class="text-gray-500">لا توجد عقوبات مسجلة</p>';
+    }
+}
         function loadAdminDashboardStats() {
             const students = allStudents;
             const teachers = allTeachers;
@@ -1791,10 +1795,44 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
 
         function loadAdminStudents() {
             displayStudentsList(allStudents, 'adminStudentsList', false);
+<div class="bg-red-50 rounded-lg p-3 mt-3">
+    <h5 class="font-semibold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> العقوبات</h5>
+    ${
+        allStudentPenalties.filter(p => p.student_id === student.id).length > 0
+        ? allStudentPenalties.filter(p => p.student_id === student.id).map(penalty => `
+            <div class="bg-white p-2 rounded border border-red-200 mb-2 flex justify-between items-center">
+                <span>
+                    ${penaltyTypes[penalty.type]} - ${penalty.reason} (${penalty.date})
+                </span>
+                <button onclick="deleteStudentPenalty('${penalty.id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">
+                    <i class="fas fa-trash mr-1"></i> حذف
+                </button>
+            </div>
+        `).join('')
+        : '<span class="text-gray-500">لا توجد عقوبات</span>'
+    }
+</div>
         }
 
         function loadAdminTeachers() {
             displayTeachersList(allTeachers);
+            <div class="bg-red-50 rounded-lg p-3 mt-3">
+    <h5 class="font-semibold text-red-700 mb-2"><i class="fas fa-exclamation-triangle mr-1"></i> العقوبات</h5>
+    ${
+        allTeacherPenalties.filter(p => p.teacher_id === teacher.id).length > 0
+        ? allTeacherPenalties.filter(p => p.teacher_id === teacher.id).map(penalty => `
+            <div class="bg-white p-2 rounded border border-red-200 mb-2 flex justify-between items-center">
+                <span>
+                    ${penaltyTypes[penalty.type]} - ${penalty.reason} (${penalty.date})
+                </span>
+                <button onclick="deleteTeacherPenalty('${penalty.id}')" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs">
+                    <i class="fas fa-trash mr-1"></i> حذف
+                </button>
+            </div>
+        `).join('')
+        : '<span class="text-gray-500">لا توجد عقوبات</span>'
+    }
+</div>
         }
 
         function displayStudentsList(students, containerId, isTeacher) {
@@ -4489,8 +4527,10 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
         registrationSettings = { schoolWideOpen: true, sectionSettings: {} };
     }
 }
-        // penalty delete button
-        async function deleteStudentPenalty(penaltyId) {
+    // Penalty and Delete Functions
+
+// دالة حذف عقوبة الطالب
+async function deleteStudentPenalty(penaltyId) {
     if (!confirm('هل أنت متأكد من حذف هذه العقوبة؟')) return;
     showSyncIndicator('جاري حذف العقوبة...');
     try {
@@ -4513,6 +4553,31 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
     }
     hideSyncIndicator();
 }
+
+// دالة حذف عقوبة المعلم
+async function deleteTeacherPenalty(penaltyId) {
+    if (!confirm('هل أنت متأكد من حذف هذه العقوبة؟')) return;
+    showSyncIndicator('جاري حذف العقوبة...');
+    try {
+        const { error } = await supabase
+            .from('teacher_penalties')
+            .delete()
+            .eq('id', penaltyId);
+
+        if (error) throw error;
+
+        // حذف من البيانات المحلية
+        const index = allTeacherPenalties.findIndex(p => p.id === penaltyId);
+        if (index !== -1) allTeacherPenalties.splice(index, 1);
+
+        showNotification('تم حذف العقوبة بنجاح', 'success');
+        loadTeacherPenalties();
+    } catch (error) {
+        showNotification('حدث خطأ أثناء حذف العقوبة', 'error');
+        console.error(error);
+    }
+    hideSyncIndicator();
+}
         // Initialize registration settings on app start
         document.addEventListener('DOMContentLoaded', async function() {
     await loadRegistrationSettings();
@@ -4520,6 +4585,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
 
