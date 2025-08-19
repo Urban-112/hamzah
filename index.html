@@ -1651,19 +1651,24 @@
                     'expulsion': 'فصل من المدرسة'
                 };
 
-                penaltiesContainer.innerHTML = penalties.map(penalty => `
-                    <div class="bg-white p-3 rounded border border-red-200">
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold text-red-700">
-                                ${penaltyTypes[penalty.type]}
-                                ${penalty.grade_deduction_amount ? ` (${penalty.grade_deduction_amount} علامة)` : ''}
-                            </span>
-                            <span class="text-sm text-gray-600">${penalty.date}</span>
-                        </div>
-                        <p class="text-sm text-gray-700 mt-1">${penalty.reason}</p>
-                        <p class="text-xs text-gray-500 mt-1">أوقعها: ${penalty.issued_by}</p>
-                    </div>
-                `).join('');
+penaltiesContainer.innerHTML = penalties.map(penalty => `
+    <div class="bg-white p-3 rounded border border-red-200">
+        <div class="flex justify-between items-center">
+            <span class="font-semibold text-red-700">
+                ${penaltyTypes[penalty.type]}
+                ${penalty.grade_deduction_amount ? ` (${penalty.grade_deduction_amount} علامة)` : ''}
+            </span>
+            <span class="text-sm text-gray-600">${penalty.date}</span>
+        </div>
+        <p class="text-sm text-gray-700 mt-1">${penalty.reason}</p>
+        <p class="text-xs text-gray-500 mt-1">أوقعها: ${penalty.issued_by}</p>
+        ${currentUserType === 'admin' ? `
+            <button onclick="deleteStudentPenalty('${penalty.id}')" class="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">
+                <i class="fas fa-trash mr-1"></i> حذف العقوبة
+            </button>
+        ` : ''}
+    </div>
+`).join('');
             } else {
                 penaltiesContainer.innerHTML = '<p class="text-gray-500">لا توجد عقوبات مسجلة</p>';
             }
@@ -4484,6 +4489,30 @@
         registrationSettings = { schoolWideOpen: true, sectionSettings: {} };
     }
 }
+        // penalty delete button
+        async function deleteStudentPenalty(penaltyId) {
+    if (!confirm('هل أنت متأكد من حذف هذه العقوبة؟')) return;
+    showSyncIndicator('جاري حذف العقوبة...');
+    try {
+        const { error } = await supabase
+            .from('student_penalties')
+            .delete()
+            .eq('id', penaltyId);
+
+        if (error) throw error;
+
+        // حذف من البيانات المحلية
+        const index = allStudentPenalties.findIndex(p => p.id === penaltyId);
+        if (index !== -1) allStudentPenalties.splice(index, 1);
+
+        showNotification('تم حذف العقوبة بنجاح', 'success');
+        loadStudentPenalties();
+    } catch (error) {
+        showNotification('حدث خطأ أثناء حذف العقوبة', 'error');
+        console.error(error);
+    }
+    hideSyncIndicator();
+}
         // Initialize registration settings on app start
         document.addEventListener('DOMContentLoaded', async function() {
     await loadRegistrationSettings();
@@ -4491,5 +4520,6 @@
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
 
 
