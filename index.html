@@ -1702,9 +1702,45 @@
         }
 
         function showAdminAbsenceReport() {
-            const container = document.getElementById('adminAbsenceReport');
+            const today = new Date().toISOString().split('T')[0];
+            const todayAbsences = allStudentAbsences.filter(a => a.date === today);
+            let dailyHtml = `
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 flex items-center justify-between">
+                    <span class="font-semibold text-blue-800">
+                        <i class="fas fa-calendar-day mr-2"></i>
+                        عدد الطلبة الغائبين اليوم بالكامل:
+                    </span>
+                    <span class="font-bold text-blue-600 text-xl">${todayAbsences.length}</span>
+                </div>
+            `;
+            // تصنيف الغياب اليومي حسب الصف والشعبة
             const grades = ['10', '11', '12'];
             const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+            let gradeSectionHtml = '';
+            grades.forEach(grade => {
+                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر' : 'الثاني عشر';
+                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                for (let i = 0; i < maxSections; i++) {
+                    const section = `${gradeText} ${arabicLetters[i]}`;
+                    const studentsInSection = allStudents.filter(s => s.grade === grade && s.section === section);
+                    const absencesToday = studentsInSection.filter(student =>
+                        todayAbsences.some(a => a.student_id === student.id)
+                    ).length;
+                    gradeSectionHtml += `
+                        <div class="flex justify-between items-center p-2 bg-white rounded mb-1">
+                            <span class="font-medium">${section}</span>
+                            <span class="font-bold text-blue-600">${absencesToday} غياب اليوم</span>
+                        </div>
+                    `;
+                }
+            });
+            dailyHtml += `
+                <div class="bg-white p-4 rounded-lg mb-4">
+                    <h4 class="font-semibold text-blue-800 mb-2">تفصيل الغياب اليومي حسب الصف والشعبة</h4>
+                    ${gradeSectionHtml}
+                </div>
+            `;
+            // الجدول التفصيلي القديم
             let html = '';
             grades.forEach(grade => {
                 let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر' : 'الثاني عشر';
@@ -1741,7 +1777,8 @@
                     </div>`;
                 }
             });
-            container.innerHTML = html;
+            const container = document.getElementById('adminAbsenceReport');
+            container.innerHTML = dailyHtml + html;
         }
 
         function displayTeacherInfo() {
@@ -2265,7 +2302,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             document.getElementById('password').value = '';
             document.getElementById('loginFields').classList.add('hidden');
             document.getElementById('forgotPasswordMessage').textContent = '';
-            
+            document.getElementById('adminAbsenceReport').innerHTML = '';
             showNotification('تم تسجيل الخروج بنجاح', 'success');
         }
 
@@ -4779,4 +4816,3 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
-
