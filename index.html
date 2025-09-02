@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المعلومات الشامل - مدرسة الأمير حمزة الثانوية للبنين</title>
@@ -9,8 +10,48 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap');
+        body {
+          font-family: 'Cairo', 'Tajawal', sans-serif;
+          background: linear-gradient(270deg, #3b82f6, #8b5cf6, #06b6d4, #f59e0b);
+          background-size: 800% 800%;
+          animation: gradientMove 15s ease infinite;
+        }
+        @keyframes gradientMove {
+          0% {background-position:0% 50%;}
+          50% {background-position:100% 50%;}
+          100% {background-position:0% 50%;}
+        }
+        
+        /* وضع ليلي */
+        .dark-mode {
+          background: linear-gradient(270deg, #1e293b, #312e81, #0f172a, #334155);
+          color: #fff;
+        }
+        .dark-mode .bg-white,
+        .dark-mode .bg-blue-50,
+        .dark-mode .bg-green-50,
+        .dark-mode .bg-yellow-50,
+        .dark-mode .bg-red-50,
+        .dark-mode .bg-indigo-50,
+        .dark-mode .bg-purple-50,
+        .dark-mode .bg-pink-50 {
+          background: #1e293b !important;
+          color: #fff !important;
+        }
+        
+        /* تدرج وأنيماشن للأزرار */
+        .btn-primary {
+          background: linear-gradient(135deg, #3b82f6, #2563eb, #8b5cf6);
+          box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+          transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+          background: linear-gradient(135deg, #8b5cf6, #2563eb, #3b82f6);
+          box-shadow: 0 16px 32px rgba(59,130,246,0.25);
+          transform: scale(1.05);
+        }
+        /* Removed duplicate @import for Cairo font */
         
         .notification {
             position: fixed;
@@ -260,25 +301,42 @@
 
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-800 to-indigo-900 text-white p-6 shadow-lg">
-        <div class="container mx-auto">
-            <div class="flex justify-between items-center">
-                <div class="text-center flex-1">
-                    <h1 class="text-3xl font-bold mb-2">
-                        <i class="fas fa-school mr-3"></i>
-                        مدرسة الأمير حمزة الثانوية للبنين
-                    </h1>
-                    <p class="text-blue-200">نظام المعلومات الشامل - المملكة الأردنية الهاشمية</p>
+    <div class="container mx-auto">
+        <div class="flex justify-between items-center">
+            <div class="text-center flex-1">
+                <h1 class="text-3xl font-bold mb-2">
+                    <i class="fas fa-school mr-3 animate__animated animate__bounce"></i>
+                    مدرسة الأمير حمزة الثانوية للبنين
+                </h1>
+                <p class="text-blue-200">نظام المعلومات الشامل - المملكة الأردنية الهاشمية</p>
+            </div>
+            <button onclick="document.body.classList.toggle('dark-mode')" class="ml-4 bg-gray-900 text-white px-3 py-2 rounded-lg">
+                <i class="fas fa-moon"></i>
+            </button>
+            <div id="userInfo" class="hidden">
+                <div class="text-left">
+                    <p class="text-sm text-blue-200">مرحباً</p>
+                    <p id="currentUserName" class="font-semibold"></p>
+                    <button onclick="logout()" class="mt-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        تسجيل الخروج
+                    </button>
                 </div>
-                <div id="userInfo" class="hidden">
-                    <div class="text-left">
-                        <p class="text-sm text-blue-200">مرحباً</p>
-                        <p id="currentUserName" class="font-semibold"></p>
-                        <button onclick="logout()" class="mt-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors">
-                            <i class="fas fa-sign-out-alt mr-2"></i>
-                            تسجيل الخروج
-                        </button>
-                    </div>
-                </div>
+            </div>
+            <script>
+                // Ensure userInfo visibility is toggled properly
+                function toggleUserInfo(isLoggedIn, userName) {
+                    const userInfo = document.getElementById('userInfo');
+                    const currentUserName = document.getElementById('currentUserName');
+                    if (isLoggedIn) {
+                        userInfo.classList.remove('hidden');
+                        currentUserName.textContent = userName || 'مستخدم';
+                    } else {
+                        userInfo.classList.add('hidden');
+                        currentUserName.textContent = '';
+                    }
+                }
+            </script>
             </div>
         </div>
     </header>
@@ -369,6 +427,14 @@
             </div>
         </div>
     </div>
+    <!-- الكادر المدرسي في صفحة الدخول -->
+<div id="schoolStaffPublic" class="max-w-5xl mx-auto mt-8 bg-white rounded-lg shadow-lg p-8">
+    <h3 class="text-2xl font-bold text-blue-800 mb-6 flex items-center">
+        <i class="fas fa-users-cog mr-3"></i>
+        كادر المدرسة
+    </h3>
+    <div id="schoolStaffListPublic"></div>
+</div>
     <!-- تبويب تقارير الغياب -->
     <div id="adminAbsenceTab" class="tab-content">
         <div class="bg-white rounded-lg shadow-lg p-6">
@@ -1135,6 +1201,8 @@
             await loadAllData();
             populateTeacherSections();
             updateLoginPageStats();
+            document.getElementById('schoolStaffPublic').style.display = 'block';
+            showSchoolStaffPublic();
         }
 
         // Load all data from Supabase
@@ -1206,6 +1274,137 @@
         function updateLoginPageStats() {
             document.getElementById('loginPageStudentCount').textContent = allStudents.length;
             document.getElementById('loginPageTeacherCount').textContent = allTeachers.length;
+        }
+                // عرض الكادر المدرسي في صفحة الدخول
+        function showSchoolStaffPublic() {
+            const container = document.getElementById('schoolStaffListPublic');
+            // بيانات الكادر الثابتة
+            const manager = { full_name: 'الدكتور أحمد برهم', job_title: 'مدير المدرسة' };
+            const assistantManager = { full_name: 'ربيع العموش', job_title: 'مساعد المدير' };
+            const counselor = { full_name: 'محمد الصمادي', job_title: 'المرشد التربوي' };
+            const librarian = { full_name: 'عبدالله الحسبان', job_title: 'أمين مكتبة' };
+            const secretary = { full_name: 'هلال راضي', job_title: 'سكرتير' };
+        
+            // أيقونات المواد
+            const subjectIcons = {
+                'اللغة العربية': 'fa-language',
+                'اللغة الإنجليزية': 'fa-language',
+                'الرياضيات': 'fa-square-root-alt',
+                'الفيزياء': 'fa-atom',
+                'الكيمياء': 'fa-flask',
+                'الأحياء': 'fa-dna',
+                'علوم الأرض والبيئة': 'fa-globe',
+                'التاريخ': 'fa-landmark',
+                'الجغرافيا': 'fa-map',
+                'التربية الإسلامية': 'fa-mosque',
+                'التربية المسيحية': 'fa-church',
+                'الثقافة العامة': 'fa-book-open',
+                'الحاسوب': 'fa-desktop',
+                'التربية الرياضية': 'fa-futbol',
+                'التربية الفنية': 'fa-paint-brush',
+                'التربية المهنية': 'fa-tools',
+                'اللغة الفرنسية': 'fa-language',
+                'أخرى': 'fa-question'
+            };
+        
+            // ألوان المواد
+            const subjectColors = {
+                'اللغة العربية': 'bg-red-100 text-red-700',
+                'اللغة الإنجليزية': 'bg-blue-100 text-blue-700',
+                'الرياضيات': 'bg-yellow-100 text-yellow-700',
+                'الفيزياء': 'bg-purple-100 text-purple-700',
+                'الكيمياء': 'bg-green-100 text-green-700',
+                'الأحياء': 'bg-teal-100 text-teal-700',
+                'علوم الأرض والبيئة': 'bg-indigo-100 text-indigo-700',
+                'التاريخ': 'bg-orange-100 text-orange-700',
+                'الجغرافيا': 'bg-lime-100 text-lime-700',
+                'التربية الإسلامية': 'bg-emerald-100 text-emerald-700',
+                'التربية المسيحية': 'bg-pink-100 text-pink-700',
+                'الثقافة العامة': 'bg-gray-100 text-gray-700',
+                'الحاسوب': 'bg-cyan-100 text-cyan-700',
+                'التربية الرياضية': 'bg-fuchsia-100 text-fuchsia-700',
+                'التربية الفنية': 'bg-rose-100 text-rose-700',
+                'التربية المهنية': 'bg-sky-100 text-sky-700',
+                'اللغة الفرنسية': 'bg-blue-50 text-blue-700',
+                'أخرى': 'bg-gray-50 text-gray-700'
+            };
+        
+            // باقي الكادر من قاعدة البيانات
+            const adminStaff = [
+                counselor,
+                ...allTeachers.filter(t => t.job_title === 'إداري')
+            ];
+            const librarianList = [librarian];
+            const secretaryList = [secretary];
+            const labSupervisor = allTeachers.filter(t => t.job_title === 'قيّم مختبر حاسوب');
+        
+            // المعلمون حسب المادة
+            const subjects = [...new Set(allTeachers.filter(t => t.job_title === 'معلم').map(t => t.subject))].sort();
+        
+            let html = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 animate__animated animate__fadeIn">
+                    <div>
+                        <div id="schoolStaffPublic" class="max-w-5xl mx-auto mt-8 bg-white rounded-lg shadow-lg p-8 animate__animated animate__fadeIn">
+                            <div class="mt-2 mb-6 text-center">
+                                 <span class="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow animate__animated animate__pulse animate__infinite">
+                                     أهلاً بكم في مدرسة الأمير حمزة - كادرنا في خدمتكم
+                                 </span>
+                             </div>
+                             <div id="schoolStaffListPublic"></div>
+                         </div>   
+                        <h4 class="font-semibold text-indigo-800 mb-2 flex items-center"><i class="fas fa-user-tie mr-2"></i> مدير المدرسة</h4>
+                        <div class="bg-indigo-50 p-3 rounded mb-2 font-bold shadow">${manager.full_name}</div>
+                        <h4 class="font-semibold text-blue-800 mt-4 mb-2 flex items-center"><i class="fas fa-user-shield mr-2"></i> مساعد المدير</h4>
+                        <div class="bg-blue-50 p-3 rounded mb-2 font-bold shadow">${assistantManager.full_name}</div>
+                        <h4 class="font-semibold text-green-800 mt-4 mb-2 flex items-center"><i class="fas fa-user-secret mr-2"></i> الإداريون</h4>
+                        ${adminStaff.map(t => `
+                            <div class="bg-green-50 p-3 rounded mb-2 font-bold shadow flex justify-between items-center">
+                                <span>${t.full_name}</span>
+                                <span class="text-xs text-green-700 font-normal">${t.job_title || ''}</span>
+                            </div>
+                        `).join('')}
+                        <h4 class="font-semibold text-yellow-800 mt-4 mb-2 flex items-center"><i class="fas fa-book mr-2"></i> أمين المكتبة</h4>
+                        ${librarianList.map(t => `<div class="bg-yellow-50 p-3 rounded mb-2 font-bold shadow">${t.full_name}</div>`).join('')}
+                        <h4 class="font-semibold text-pink-800 mt-4 mb-2 flex items-center"><i class="fas fa-flask mr-2"></i> قيم مختبر الحاسوب</h4>
+                        ${labSupervisor.map(t => `<div class="bg-pink-50 p-3 rounded mb-2 font-bold shadow">${t.full_name}</div>`).join('')}
+                        <h4 class="font-semibold text-gray-800 mt-4 mb-2 flex items-center"><i class="fas fa-user-secret mr-2"></i> السكرتير</h4>
+                        ${secretaryList.map(t => `<div class="bg-gray-50 p-3 rounded mb-2 font-bold shadow">${t.full_name}</div>`).join('')}
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-red-800 mb-2 flex items-center"><i class="fas fa-chalkboard-teacher mr-2"></i> المعلمون حسب المادة</h4>
+                        ${subjects.map(subject => {
+                            const teachers = allTeachers
+                                .filter(t => t.subject === subject && t.job_title === 'معلم')
+                                .sort((a, b) => a.full_name.localeCompare(b.full_name, 'ar'));
+                            return `
+                                <div class="mb-4">
+                                    <div class="p-2 rounded font-bold flex items-center gap-2 shadow ${subjectColors[subject] || 'bg-gray-100 text-gray-700'}">
+                                        <i class="fas ${subjectIcons[subject] || 'fa-book'} mr-2"></i>
+                                        ${subject}
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-2">
+                                        ${teachers.map(t => {
+                                            // الاسم الأول واسم العائلة فقط
+                                            const first = t.name1 || (t.full_name ? t.full_name.split(' ')[0] : '');
+                                            const last = t.name4 || (t.full_name ? t.full_name.split(' ').slice(-1)[0] : '');
+                                            return `<div class="bg-white p-2 rounded shadow-sm font-bold flex items-center gap-2 hover:bg-blue-50 transition duration-200">
+                                                <i class="fas fa-user text-blue-400"></i>
+                                                ${first} ${last}
+                                            </div>`;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                <div class="mt-8 text-center">
+                    <span class="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow animate__animated animate__pulse animate__infinite">
+                        أهلاً بكم في مدرسة الأمير حمزة - كادرنا في خدمتكم
+                    </span>
+                </div>
+            `;
+            container.innerHTML = html;
         }
 
         function setupEventListeners() {
@@ -1426,11 +1625,14 @@
         function showRegistration() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('registrationSection').classList.remove('hidden');
+            document.getElementById('schoolStaffPublic').style.display = 'none'; // إخفاء الكادر
         }
 
         function showLogin() {
             document.getElementById('registrationSection').classList.add('hidden');
             document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('schoolStaffPublic').style.display = 'block'; // إظهار الكادر
+            showSchoolStaffPublic();
         }
 
         // Quick Login Function for Demo Accounts
@@ -1508,7 +1710,7 @@
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('registrationSection').classList.add('hidden');
             document.getElementById('dashboardSection').classList.remove('hidden');
-            
+            document.getElementById('schoolStaffPublic').style.display = 'none'; // إخفاء الكادر
             document.getElementById('userInfo').classList.remove('hidden');
             document.getElementById('currentUserName').textContent = currentUser.full_name || currentUser.username;
 
@@ -2038,7 +2240,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                     distribution[gradeText] = (distribution[gradeText] || 0) + 1;
                 }
             });
-            
+
             const distributionHtml = Object.entries(distribution)
                 .map(([grade, count]) => `
                     <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm border-r-4 border-blue-500">
@@ -2048,7 +2250,67 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                 `).join('');
             
             document.getElementById('studentsDistribution').innerHTML = distributionHtml || '<p class="text-gray-500">لا توجد بيانات</p>';
-
+            
+            // أضف هذا الكود في نهاية دالة loadAdminDashboardStats
+            // ...داخل دالة loadAdminDashboardStats بعد توزيع الطلبة حسب الصف...
+            
+            const grades = ['10', '11', '12'];
+            const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+            let sectionsHtml = '';
+            
+            grades.forEach(grade => {
+                const gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                let gradeCompareText = gradeText.replace(' أكاديمي', ''); // لإزالة كلمة أكاديمي عند المقارنة
+                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                for (let i = 0; i < maxSections; i++) {
+                    const sectionName = `${gradeText} ${arabicLetters[i]}`;
+                    // تطابق جزئي للشعبة للطلبة والمعلمين
+                    const sectionCompare = sectionName.replace(' أكاديمي', '').trim();
+            
+                    // مربي الصف (المعلم المسؤول)
+                    const teacher = allTeachers.find(t => {
+                        if (!t.section) return false;
+                        // تطابق جزئي مع أو بدون كلمة أكاديمي
+                        return t.section.replace(' أكاديمي', '').trim() === sectionCompare;
+                    });
+            
+                    // عدد الطلبة في الشعبة (تطابق جزئي)
+                    const studentsCount = allStudents.filter(s => {
+                        if (!s.section) return false;
+                        return s.section.replace(' أكاديمي', '').trim() === sectionCompare;
+                    }).length;
+            
+                    sectionsHtml += `
+                        <div class="bg-white p-4 rounded-lg shadow mb-2 flex flex-col md:flex-row justify-between items-center">
+                            <div class="flex flex-col md:flex-row gap-4 items-center">
+                                <span class="font-bold text-blue-800 text-lg">${sectionName}</span>
+                                <span class="text-gray-700">مربي الصف: <span class="font-semibold text-green-700">${teacher ? teacher.full_name : 'غير محدد'}</span></span>
+                            </div>
+                            <span class="bg-blue-100 text-blue-700 px-4 py-2 rounded-full font-bold">${studentsCount} طالب</span>
+                        </div>
+                    `;
+                }
+            });
+            // أضف جدول الأقسام إلى لوحة التحكم
+            const dashboard = document.getElementById('adminDashboard');
+            if (dashboard) {
+                let sectionStatsDiv = document.getElementById('sectionStats');
+                if (!sectionStatsDiv) {
+                    sectionStatsDiv = document.createElement('div');
+                    sectionStatsDiv.id = 'sectionStats';
+                    sectionStatsDiv.className = 'bg-gray-50 p-6 rounded-lg mt-8';
+                    dashboard.appendChild(sectionStatsDiv);
+                }
+                sectionStatsDiv.innerHTML = `
+                    <h4 class="text-lg font-semibold mb-4 text-indigo-800">
+                        <i class="fas fa-users mr-2"></i>
+                        تفاصيل الصفوف والشعب ومربي الصف وعدد الطلبة
+                    </h4>
+                    ${sectionsHtml}
+                `;
+            }
+            
+            // ...existing code...
             // Show recent penalties
             const penaltyTypes = {
                     'warning': 'تنبيه',
@@ -2306,12 +2568,20 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             showNotification('تم تسجيل الخروج بنجاح', 'success');
         }
 
+        // أضف مؤثر صوتي عند الإشعار الناجح في دالة showNotification
         function showNotification(message, type) {
             const notification = document.getElementById('notification');
+            if (!notification) {
+                console.error('Notification element not found');
+                return;
+            }
             notification.textContent = message;
             notification.className = `notification ${type}`;
             notification.classList.add('show');
-            
+            if (type === 'success') {
+                const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-bell-notification-933.mp3');
+                audio.play();
+            }
             setTimeout(() => {
                 notification.classList.remove('show');
             }, 3000);
