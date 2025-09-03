@@ -22,6 +22,11 @@
           50% {background-position:100% 50%;}
           100% {background-position:0% 50%;}
         }
+
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.03);
+            box-shadow: 0 25px 60px rgba(59,130,246,0.18);
+        }
         
         /* وضع ليلي */
         .dark-mode {
@@ -38,6 +43,21 @@
         .dark-mode .bg-pink-50 {
           background: #1e293b !important;
           color: #fff !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb, #8b5cf6);
+            transition: all 0.2s;
+        }
+        .btn-primary:active {
+            transform: scale(0.97);
+            filter: brightness(0.95);
+        }
+
+        .bg-glass {
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
         
         /* تدرج وأنيماشن للأزرار */
