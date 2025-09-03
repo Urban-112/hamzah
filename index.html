@@ -2914,10 +2914,13 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                 loadAdminTeachers();
                 return;
             }
-            
             const teachers = allTeachers.filter(teacher => 
-                teacher.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm.replace(/\s+/g, '').toLowerCase()) ||
-                teacher.subject.toLowerCase().includes(searchTerm)
+                (teacher.full_name && teacher.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm.replace(/\s+/g, '').toLowerCase())) ||
+                (teacher.subject && teacher.subject.toLowerCase().includes(searchTerm)) ||
+                (teacher.username && teacher.username.toLowerCase().includes(searchTerm)) ||
+                (teacher.section && teacher.section.toLowerCase().includes(searchTerm)) ||
+                (teacher.rank && teacher.rank.toLowerCase().includes(searchTerm)) ||
+                (teacher.job_title && teacher.job_title.toLowerCase().includes(searchTerm))
             );
             displayTeachersList(teachers);
         }
