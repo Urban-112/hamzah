@@ -576,7 +576,7 @@
                                 <option value="الجغرافيا">الجغرافيا</option>
                                 <option value="التربية الإسلامية">التربية الإسلامية</option>
                                 <option value="التربية المسيحية">التربية المسيحية</option>
-                                <option value="الثقافة العامة">الثقافة العامة</option>
+                                <option value="الثقافة المالية">الثقافة المالية</option>
                                 <option value="الحاسوب">الحاسوب</option>
                                 <option value="التربية الرياضية">التربية الرياضية</option>
                                 <option value="التربية الفنية">التربية الفنية</option>
@@ -676,6 +676,30 @@
             <div id="absenceStudentsList"></div>
         </div>
         <!-- Student Dashboard -->
+        <div id="studentNotesTab" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-blue-800 mb-4">
+                    <i class="fas fa-comment-dots mr-2"></i>
+                    إرسال ملاحظة أو شكوى للإدارة
+                </h3>
+                <form id="studentNoteForm" onsubmit="submitStudentNote(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">نوع الملاحظة</label>
+                        <select id="studentNoteType" class="w-full p-3 border rounded-lg">
+                            <option value="complaint">شكوى</option>
+                            <option value="thanks">شكر</option>
+                        </select>
+                    </div>
+                    <textarea id="studentNoteText" class="w-full p-4 border rounded-lg mb-4" rows="5" placeholder="اكتب ملاحظتك أو شكواك هنا..."></textarea>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">
+                        إرسال
+                    </button>
+                </form>
+                <div id="studentNotesStatus" class="mt-4"></div>
+                <div id="studentNotesList" class="mt-6"></div>
+                <div id="classImagesList" class="mt-8"></div>
+            </div>
+        </div>
         <div id="studentDashboard" class="tab-content">
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="flex justify-end mb-4">
@@ -688,6 +712,8 @@
                 <div id="studentInfo" class="space-y-4 mb-6">
                     <!-- Student information will be displayed here -->
                 </div>
+                <div id="studentNotesList" class="mt-8"></div>
+                <div id="studentImagesList" class="mt-8"></div>
                 
                 <!-- Student Penalties Section -->
                 <div class="bg-red-50 rounded-lg p-4">
@@ -766,6 +792,23 @@
             </div>
         </div>
 
+        <div id="uploadImageTab" class="tab-content">
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-blue-800 mb-4">
+                  <i class="fas fa-image mr-2"></i>
+                  رفع صورة للطلاب
+                </h3>
+                <form id="uploadImageForm" onsubmit="uploadClassImage(event)">
+                  <input type="file" id="classImageFile" accept="image/*" class="mb-4" required>
+                  <input type="text" id="imageTitle" class="w-full p-2 border rounded mb-2" placeholder="عنوان الصورة (اختياري)">
+                  <textarea id="imageDesc" class="w-full p-2 border rounded mb-2" placeholder="وصف (اختياري)"></textarea>
+                  <select id="imageSection" class="w-full p-2 border rounded mb-4"></select>
+                  <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">رفع الصورة</button>
+                </form>
+                <div id="uploadImageStatus" class="mt-4"></div>
+              </div>
+            </div>
+
         <!-- Admin Dashboard -->
         <div id="adminDashboard" class="tab-content">
             <div class="bg-white rounded-lg shadow-lg p-6">
@@ -828,6 +871,23 @@
                 </div>
             </div>
         </div>
+
+        <div id="uploadImageTab" class="tab-content">
+              <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-blue-800 mb-4">
+                  <i class="fas fa-image mr-2"></i>
+                  رفع صورة للطلاب
+                </h3>
+                <form id="uploadImageForm" onsubmit="uploadClassImage(event)">
+                  <input type="file" id="classImageFile" accept="image/*" class="mb-4" required>
+                  <input type="text" id="imageTitle" class="w-full p-2 border rounded mb-2" placeholder="عنوان الصورة (اختياري)">
+                  <textarea id="imageDesc" class="w-full p-2 border rounded mb-2" placeholder="وصف (اختياري)"></textarea>
+                  <select id="imageSection" class="w-full p-2 border rounded mb-4"></select>
+                  <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold">رفع الصورة</button>
+                </form>
+                <div id="uploadImageStatus" class="mt-4"></div>
+              </div>
+            </div>
 
         <!-- Admin Students Tab -->
         <div id="adminStudentsTab" class="tab-content">
@@ -1069,7 +1129,15 @@
                 </div>
             </div>
         </div>
-
+        <div id="adminStudentNotesTab" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-blue-800 mb-4">
+                    <i class="fas fa-comments mr-2"></i>
+                    ملاحظات وشكاوى الطلبة
+                </h3>
+                <div id="adminStudentNotesList"></div>
+            </div>
+        </div>
         <!-- Admin Reports Tab -->
         <div id="adminReportsTab" class="tab-content">
             <div class="bg-white rounded-lg shadow-lg p-6">
@@ -1196,6 +1264,10 @@
         });
 
         async function initializeApp() {
+            if (!currentUser && localStorage.getItem('currentUser')) {
+                currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                currentUserType = localStorage.getItem('currentUserType');
+            }
             await loadStudentAbsences();
             setupEventListeners();
             await loadAllData();
@@ -1298,7 +1370,7 @@
                 'الجغرافيا': 'fa-map',
                 'التربية الإسلامية': 'fa-mosque',
                 'التربية المسيحية': 'fa-church',
-                'الثقافة العامة': 'fa-book-open',
+                'الثقافة المالية': 'fa-book-open',
                 'الحاسوب': 'fa-desktop',
                 'التربية الرياضية': 'fa-futbol',
                 'التربية الفنية': 'fa-paint-brush',
@@ -1407,6 +1479,63 @@
             container.innerHTML = html;
         }
 
+        async function loadAdminStudentNotes() {
+            const container = document.getElementById('adminStudentNotesList');
+            container.innerHTML = 'جاري التحميل...';
+            try {
+                const { data, error } = await supabase
+                    .from('student_notes')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد ملاحظات أو شكاوى</p>';
+                    return;
+                }
+                // فرز حسب النوع
+                const complaints = data.filter(note => note.type === 'complaint');
+                const thanks = data.filter(note => note.type === 'thanks');
+                container.innerHTML = `
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-red-700 mb-2"><i class="fas fa-exclamation-circle mr-2"></i> الشكاوى</h4>
+                        ${complaints.length === 0 ? '<p class="text-gray-500">لا توجد شكاوى</p>' : complaints.map(note => renderNoteCard(note)).join('')}
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-bold text-green-700 mb-2"><i class="fas fa-heart mr-2"></i> رسائل الشكر</h4>
+                        ${thanks.length === 0 ? '<p class="text-gray-500">لا توجد رسائل شكر</p>' : thanks.map(note => renderNoteCard(note)).join('')}
+                    </div>
+                `;
+            } catch (e) {
+                container.innerHTML = '<span class="text-red-600">حدث خطأ أثناء تحميل الملاحظات</span>';
+            }
+        }
+        
+        // دالة عرض بطاقة الملاحظة مع زر قراءة
+        function renderNoteCard(note) {
+            return `
+                <div class="bg-white p-4 rounded-lg mb-3 shadow flex flex-col md:flex-row justify-between items-center">
+                    <div class="flex-1">
+                        <div class="flex gap-4 items-center mb-2">
+                            <span class="font-bold text-blue-800">${note.student_name}</span>
+                            <span class="text-sm text-gray-500">${note.section || ''}</span>
+                            <span class="text-xs text-gray-400">${note.created_at ? note.created_at.split('T')[0] : ''}</span>
+                        </div>
+                        <div class="text-gray-800 truncate max-w-xs">${note.note.length > 60 ? note.note.slice(0, 60) + '...' : note.note}</div>
+                        <div class="mt-2">
+                            <span class="text-xs px-2 py-1 rounded-full ${note.type === 'complaint' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                                ${note.type === 'complaint' ? 'شكوى' : 'شكر'}
+                            </span>
+                            <span class="text-xs px-2 py-1 rounded-full ${note.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
+                                ${note.status === 'pending' ? 'قيد الانتظار' : 'تمت المشاهدة'}
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="showNoteModal('${note.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold mt-2 md:mt-0">
+                        <i class="fas fa-eye mr-1"></i> قراءة
+                    </button>
+                </div>
+            `;
+        }
         function setupEventListeners() {
             document.getElementById('userType').addEventListener('change', function() {
                 const loginFields = document.getElementById('loginFields');
@@ -1659,8 +1788,8 @@
         // Main Login Function
         async function performLogin() {
             const userType = document.getElementById('userType').value;
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
 
             if (!userType || !username || !password) {
                 showNotification('يرجى ملء جميع الحقول', 'error');
@@ -1695,6 +1824,8 @@
                 if (user) {
                     currentUser = user;
                     currentUserType = userType;
+                    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                    localStorage.setItem('currentUserType', currentUserType);
                     showDashboard();
                     showNotification('تم تسجيل الدخول بنجاح', 'success');
                 } else {
@@ -1728,7 +1859,11 @@
                         <i class="fas fa-user-graduate mr-2"></i>
                         معلوماتي
                     </button>
-                `;
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('studentNotesTab', event)">
+                            <i class="fas fa-comment-dots mr-2"></i>
+                            ملاحظات وشكاوى
+                        </button>
+                    `;
                 showTab('studentDashboard');
             } else if (currentUserType === 'teacher') {
                 tabNavigation.innerHTML = `
@@ -1743,6 +1878,10 @@
                     <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('teacherRegistrationTab', event)">
                         <i class="fas fa-cog mr-2"></i>
                         التحكم في التسجيل
+                    </button>
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('uploadImageTab', event)">
+                        <i class="fas fa-image mr-2"></i>
+                        رفع صورة للطلاب
                     </button>
                 `;
                 showTab('teacherDashboard');
@@ -1772,6 +1911,14 @@
                         <i class="fas fa-calendar-times mr-2"></i>
                         تقارير الغياب
                     </button>
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('adminStudentNotesTab', event)">
+                        <i class="fas fa-comments mr-2"></i>
+                        ملاحظات وشكاوى الطلبة
+                    </button>
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('uploadImageTab', event)">
+                        <i class="fas fa-image mr-2"></i>
+                        رفع صورة للطلاب
+                    </button>
                 `;
                 showTab('adminDashboard');
             } else if (currentUserType === 'absence_monitor') {
@@ -1786,6 +1933,12 @@
         }
 
         function showTab(tabId, evt) {
+            if (tabId === 'uploadImageTab') {
+                prepareImageSectionOptions();
+            }
+            if (tabId === 'adminStudentNotesTab') {
+                loadAdminStudentNotes();
+            }
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -1797,6 +1950,11 @@
             const targetTab = document.getElementById(tabId);
             if (targetTab) {
                 targetTab.classList.add('active');
+            }
+
+            if (tabId === 'studentNotesTab') {
+                loadStudentNotes();
+                loadClassImages();
             }
 
             // Use evt if provided, otherwise fallback to event if available
@@ -1901,6 +2059,7 @@
                     </div>
                 </div>
             `;
+            loadStudentImages();
         }
 
         function showAdminAbsenceReport() {
@@ -2553,6 +2712,8 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
         function logout() {
             currentUser = null;
             currentUserType = null;
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('currentUserType');
             
             document.getElementById('dashboardSection').classList.add('hidden');
             document.getElementById('userInfo').classList.add('hidden');
@@ -2717,7 +2878,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             
             const students = allStudents.filter(student => 
                 student.section === currentUser.section &&
-                student.full_name.toLowerCase().includes(searchTerm)
+                student.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm.replace(/\s+/g, '').toLowerCase())
             );
             displayStudentsList(students, 'teacherStudentsList', true);
         }
@@ -2731,7 +2892,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             
             if (searchTerm) {
                 students = students.filter(student => 
-                    student.full_name.toLowerCase().includes(searchTerm) ||
+                student.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm.replace(/\s+/g, '').toLowerCase()) ||
                     student.section.toLowerCase().includes(searchTerm)
                 );
             }
@@ -2755,7 +2916,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             }
             
             const teachers = allTeachers.filter(teacher => 
-                teacher.full_name.toLowerCase().includes(searchTerm) ||
+                teacher.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm.replace(/\s+/g, '').toLowerCase()) ||
                 teacher.subject.toLowerCase().includes(searchTerm)
             );
             displayTeachersList(teachers);
@@ -3777,7 +3938,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                                     <option value="الجغرافيا">الجغرافيا</option>
                                     <option value="التربية الإسلامية">التربية الإسلامية</option>
                                     <option value="التربية المسيحية">التربية المسيحية</option>
-                                    <option value="الثقافة العامة">الثقافة العامة</option>
+                                    <option value="الثقافة المالية">الثقافة المالية</option>
                                     <option value="الحاسوب">الحاسوب</option>
                                     <option value="التربية الرياضية">التربية الرياضية</option>
                                     <option value="التربية الفنية">التربية الفنية</option>
@@ -5082,6 +5243,259 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
     }
     hideSyncIndicator();
 }
+
+        // leave delete button
+        async function deleteTeacherLeave(leaveId) {
+    if (!confirm('هل أنت متأكد من حذف هذه الإجازة؟')) return;
+    showSyncIndicator('جاري حذف الإجازة...');
+    try {
+        const { error } = await supabase
+            .from('teacher_leaves')
+            .delete()
+            .eq('id', leaveId);
+
+        if (error) throw error;
+
+        // حذف من البيانات المحلية
+        const index = allTeacherLeaves.findIndex(l => l.id === leaveId);
+        if (index !== -1) allTeacherLeaves.splice(index, 1);
+
+        showNotification('تم حذف الإجازة بنجاح', 'success');
+        loadTeacherLeaves();
+    } catch (error) {
+        showNotification('حدث خطأ أثناء حذف الإجازة', 'error');
+        console.error(error);
+    }
+    hideSyncIndicator();
+}
+
+    async function showNoteModal(noteId) {
+        // جلب الملاحظة من قاعدة البيانات
+        const { data, error } = await supabase
+            .from('student_notes')
+            .select('*')
+            .eq('id', noteId)
+            .single();
+        if (error || !data) {
+            showNotification('حدث خطأ في جلب الملاحظة', 'error');
+            return;
+        }
+        // إذا كانت الحالة قيد الانتظار، حدثها إلى تمت المشاهدة
+        if (data.status === 'pending') {
+            await supabase
+                .from('student_notes')
+                .update({ status: 'seen' })
+                .eq('id', noteId);
+            // إعادة تحميل الملاحظات بعد القراءة
+            loadAdminStudentNotes();
+        }
+        // عرض الملاحظة في نافذة منبثقة
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-xl w-full mx-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-bold text-blue-800">
+                        <i class="fas fa-comment-dots mr-2"></i>
+                        ${data.type === 'complaint' ? 'شكوى' : 'شكر'} من الطالب
+                    </h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <span class="font-bold text-blue-800">${data.student_name}</span>
+                    <span class="text-sm text-gray-500">${data.section || ''}</span>
+                    <span class="text-xs text-gray-400">${data.created_at ? data.created_at.split('T')[0] : ''}</span>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg text-gray-900 font-semibold mb-4" style="white-space:pre-line">${data.note}</div>
+                <div>
+                    <span class="text-xs px-2 py-1 rounded-full ${data.type === 'complaint' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
+                        ${data.type === 'complaint' ? 'شكوى' : 'شكر'}
+                    </span>
+                    <span class="text-xs px-2 py-1 rounded-full ${data.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
+                        ${data.status === 'pending' ? 'قيد الانتظار' : 'تمت المشاهدة'}
+                    </span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    async function submitStudentNote(event) {
+        event.preventDefault();
+        const noteType = document.getElementById('studentNoteType').value;
+        const note = document.getElementById('studentNoteText').value.trim();
+        if (!note) {
+            document.getElementById('studentNotesStatus').innerHTML = '<span class="text-red-600">يرجى كتابة الملاحظة أو الشكوى</span>';
+            return;
+        }
+        document.getElementById('studentNotesStatus').innerHTML = 'جاري الإرسال...';
+        try {
+            const { error } = await supabase
+                .from('student_notes')
+                .insert([{
+                    student_id: currentUser.id,
+                    student_name: currentUser.full_name,
+                    section: currentUser.section,
+                    note: note,
+                    type: noteType,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                }]);
+            if (error) throw error;
+            document.getElementById('studentNotesStatus').innerHTML = '<span class="text-green-600">تم إرسال الملاحظة بنجاح</span>';
+            document.getElementById('studentNoteText').value = '';
+        } catch (e) {
+            document.getElementById('studentNotesStatus').innerHTML = '<span class="text-red-600">حدث خطأ أثناء الإرسال</span>';
+        }
+    }
+
+    async function loadStudentNotes() {
+        const container = document.getElementById('studentNotesList');
+        container.innerHTML = 'جاري التحميل...';
+        try {
+            const { data, error } = await supabase
+                .from('student_notes')
+                .select('*')
+                .eq('student_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد ملاحظات أو شكاوى سابقة</p>';
+                return;
+            }
+            container.innerHTML = data.map(note => `
+                <div class="bg-white p-4 rounded-lg mb-3 shadow flex flex-col md:flex-row justify-between items-center">
+                    <div>
+                        <span class="font-bold text-blue-800">${note.type === 'complaint' ? 'شكوى' : 'شكر'}</span>
+                        <span class="text-sm text-gray-500 mx-2">${note.created_at ? note.created_at.split('T')[0] : ''}</span>
+                        <div class="text-gray-800 mt-2">${note.note}</div>
+                    </div>
+                    <span class="text-xs px-2 py-1 rounded-full ${note.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
+                        ${note.status === 'pending' ? 'قيد الانتظار' : 'تمت المشاهدة'}
+                    </span>
+                </div>
+            `).join('');
+        } catch (e) {
+            container.innerHTML = '<span class="text-red-600">حدث خطأ أثناء تحميل الملاحظات</span>';
+        }
+    }
+
+    function prepareImageSectionOptions() {
+        const select = document.getElementById('imageSection');
+        select.innerHTML = '';
+        if (currentUserType === 'teacher') {
+            // المعلم يرسل فقط لشعبته
+            select.innerHTML = `<option value="${currentUser.section}">${currentUser.section}</option>`;
+            select.disabled = true;
+        } else if (currentUserType === 'admin') {
+            // المسؤول يختار الجميع أو أي شعبة
+            select.innerHTML = `<option value="all">جميع الطلاب</option>`;
+            const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+            for (let grade of ['10', '11', '12']) {
+                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر' : 'الثاني عشر';
+                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                for (let i = 0; i < maxSections; i++) {
+                    select.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                }
+            }
+            select.disabled = false;
+        }
+    }
+
+    async function uploadClassImage(event) {
+        event.preventDefault();
+        const fileInput = document.getElementById('classImageFile');
+        const file = fileInput.files[0];
+        if (!file) return;
+    
+        const title = document.getElementById('imageTitle').value;
+        const description = document.getElementById('imageDesc').value;
+        const section = document.getElementById('imageSection').value;
+    
+        // اسم فريد للصورة
+        const filePath = `${Date.now()}_${file.name}`;
+    
+        // رفع الصورة إلى Supabase Storage
+        const { data, error } = await supabase.storage
+            .from('class-images')
+            .upload(filePath, file);
+    
+        if (error) {
+            document.getElementById('uploadImageStatus').innerHTML = '<span class="text-red-600">فشل رفع الصورة</span>';
+            return;
+        }
+    
+        // جلب رابط الصورة
+        const { data: publicUrlData } = supabase.storage
+            .from('class-images')
+            .getPublicUrl(filePath);
+    
+        const imageUrl = publicUrlData.publicUrl;
+    
+        // حفظ بيانات الصورة في الجدول
+        await supabase.from('class_images').insert([{
+            uploader_id: currentUser.id,
+            uploader_name: currentUser.full_name,
+            uploader_type: currentUserType,
+            section: section,
+            image_url: imageUrl,
+            title: title,
+            description: description
+        }]);
+    
+        document.getElementById('uploadImageStatus').innerHTML = '<span class="text-green-600">تم رفع الصورة بنجاح</span>';
+        fileInput.value = '';
+        document.getElementById('imageTitle').value = '';
+        document.getElementById('imageDesc').value = '';
+    }
+
+    async function loadClassImages() {
+        const container = document.getElementById('classImagesList');
+        container.innerHTML = 'جاري التحميل...';
+        // جلب الصور المرسلة للجميع أو لشعبة الطالب فقط
+        const { data, error } = await supabase
+            .from('class_images')
+            .select('*')
+            .or(`section.eq.${currentUser.section},section.eq.all`)
+            .order('created_at', { ascending: false });
+        if (error || !data || data.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد صور مرفوعة</p>';
+            return;
+        }
+        container.innerHTML = data.map(img => `
+            <div class="bg-white p-4 rounded-lg mb-3 shadow">
+                <img src="${img.image_url}" alt="${img.title || ''}" class="rounded mb-2 max-h-64 mx-auto">
+                <div class="font-bold text-blue-800">${img.title || ''}</div>
+                <div class="text-gray-700 mb-2">${img.description || ''}</div>
+                <div class="text-xs text-gray-500">${img.created_at ? img.created_at.split('T')[0] : ''}</div>
+            </div>
+        `).join('');
+    }
+
+     async function loadStudentImages() {
+        const container = document.getElementById('studentImagesList');
+        container.innerHTML = 'جاري التحميل...';
+        const { data, error } = await supabase
+            .from('class_images')
+            .select('*')
+            .or(`section.eq.${currentUser.section},section.eq.all`)
+            .order('created_at', { ascending: false });
+        if (error || !data || data.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-4">لا توجد صور مرفوعة</p>';
+            return;
+        }
+        container.innerHTML = data.map(img => `
+            <div class="bg-white p-4 rounded-lg mb-3 shadow">
+                <img src="${img.image_url}" alt="${img.title || ''}" class="rounded mb-2 max-h-64 mx-auto">
+                <div class="font-bold text-blue-800">${img.title || ''}</div>
+                <div class="text-gray-700 mb-2">${img.description || ''}</div>
+                <div class="text-xs text-gray-500">${img.created_at ? img.created_at.split('T')[0] : ''}</div>
+            </div>
+        `).join('');
+    }
+
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
