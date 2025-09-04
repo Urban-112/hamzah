@@ -22,6 +22,81 @@
           50% {background-position:100% 50%;}
           100% {background-position:0% 50%;}
         }
+         
+        /* CSS للإشعار المتحرك */
+        .marquee-notif {
+          position: relative;
+          overflow: hidden;
+          font-size: 1.1rem;
+          border: none;
+          background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
+          color: #fff;
+          padding: 14px 22px 14px 44px;
+          border-radius: 16px;
+          margin-bottom: 18px;
+          box-shadow: 0 8px 32px rgba(59,130,246,0.18), 0 2px 8px rgba(0,0,0,0.08);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: box-shadow 0.3s, transform 0.3s;
+  }
+        .marquee-notif::before {
+            content: "\f0f3";
+          font-family: "Font Awesome 6 Free";
+          font-weight: 900;
+          font-size: 1.5rem;
+          color: #fbbf24;
+          margin-left: 8px;
+          margin-right: 8px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+          content: "\f0f3";
+          font-family: "Font Awesome 6 Free";
+          font-weight: 900;
+          font-size: 1.5rem;
+          color: #fbbf24;
+          margin-left: 8px;
+          margin-right: 8px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+        }
+        .marquee-notif:hover {
+          box-shadow: 0 12px 40px rgba(59,130,246,0.28), 0 4px 16px rgba(0,0,0,0.12);
+          transform: scale(1.02);
+        }
+        .marquee-notif {
+          position: relative;
+          overflow: hidden;
+        }
+        .marquee-notif .text {
+          display: inline-block;
+          white-space: nowrap;
+          direction: rtl;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+        }
+        @keyframes marquee-rtl {
+          0%   { transform: translateX(-90%); }
+          100% { transform: translateX(100%); }
+        }
+        .marquee-notif:hover .text { animation-play-state: paused; }
+        .marquee-close {
+          position: absolute;
+          left: 12px;
+          top: 12px;
+          background: rgba(0,0,0,0.18);
+          border-radius: 50%;
+          padding: 4px 8px;
+          cursor: pointer;
+          color: #fff;
+          font-weight: bold;
+          font-size: 1rem;
+          border: none;
+          transition: background 0.2s;
+          z-index: 2;
+        }
+        .marquee-close:hover {
+          background: #ef4444;
+          color: #fff;
+        }
 
         .card-hover:hover {
             transform: translateY(-8px) scale(1.03);
@@ -1267,6 +1342,52 @@
                 </div>
             </div>
         </div>
+        <div id="adminNotificationsTab" class="tab-content">
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <h3 class="text-xl font-bold mb-4">إدارة الإشعارات</h3>
+        
+            <form id="notificationForm" onsubmit="sendNotification(event)">
+              <div class="mb-3">
+                <label class="font-semibold">العنوان</label>
+                <input id="notifTitle" class="w-full p-2 border rounded" required>
+              </div>
+              <div class="mb-3">
+                <label class="font-semibold">النص</label>
+                <textarea id="notifMessage" class="w-full p-2 border rounded" rows="3" required></textarea>
+                  <select id="emojiPicker" onchange="insertEmojiToNotifMessage()" class="p-2 rounded border bg-white text-xl" style="width:48px;">
+                  <option value="">😊</option>
+                  <option value="🏫">🏫</option>
+                  <option value="⚡️">⚡️</option>
+                  <option value="🎉">🎉</option>
+                  <option value="🔔">🔔</option>
+                  <option value="📢">📢</option>
+                  <option value="⭐">⭐</option>
+                  <option value="🚨">🚨</option>
+                  <option value="✅">✅</option>
+                  <option value="❗">❗</option>
+                  <option value="🌟">🌟</option>
+                  <option value="🌧️">🌧️</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="font-semibold">نوع المستهدف</label>
+                <select id="notifTargetType" class="w-full p-2 border rounded" onchange="updateNotifTargetOptions()" required>
+                  <option value="school">كل المدرسة</option>
+                  <option value="grade">مرحلة صفية</option>
+                  <option value="section">شعبة محددة</option>
+                </select>
+              </div>
+              <div id="notifTargetValueContainer" class="mb-3"></div>
+        
+              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">إرسال الإشعار</button>
+            </form>
+        
+            <hr class="my-4">
+        
+            <h4 class="font-bold mb-2">قائمة الإشعارات</h4>
+            <div id="notificationsList"></div>
+          </div>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -2002,6 +2123,9 @@
                         <i class="fas fa-image mr-2"></i>
                         رفع صورة للطلاب
                     </button>
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('adminNotificationsTab', event)">
+                        <i class="fas fa-bullhorn mr-2"></i> إدارة الإشعارات
+                    </button>
                 `;
                 showTab('adminDashboard');
             } else if (currentUserType === 'absence_monitor') {
@@ -2019,8 +2143,11 @@
             if (tabId === 'uploadImageTab') {
                 prepareImageSectionOptions();
             }
+            if (tabId === 'adminNotificationsTab') {
+               loadNotificationsList();
+            }
             if (tabId === 'adminStudentNotesTab') {
-                loadAdminStudentNotes();
+               loadAdminStudentNotes();
             }
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -2142,7 +2269,71 @@
                     </div>
                 </div>
             `;
+            async function showStudentNotification() {
+              if (!currentUser) return;
+              // جلب جميع الإشعارات النشطة (من الأقدم إلى الأحدث)
+              const { data, error } = await supabase.from('notifications').select('*').eq('is_active', true).order('created_at', { ascending: true });
+              if (error || !data) return;
+              // إشعارات موجهة للطالب حسب الشعبة أو الصف أو المدرسة
+              const notifs = data.filter(n =>
+                (n.target_type === 'section' && n.target_value === currentUser.section) ||
+                (n.target_type === 'grade' && n.target_value === String(currentUser.grade)) ||
+                (n.target_type === 'school' && n.target_value === 'all')
+              );
+              if (notifs.length === 0) return;
+              const studentInfo = document.getElementById('studentInfo');
+              if (!studentInfo) return;
+            
+              // احذف جميع الإشعارات القديمة أولاً
+              studentInfo.querySelectorAll('.marquee-notif').forEach(e => e.remove());
+            
+              // أضف جميع الإشعارات من جديد (من الأقدم إلى الأحدث)
+              notifs.forEach(notif => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'marquee-notif';
+                wrapper.setAttribute('data-id', notif.id);
+            
+                // اسم أنيميشن فريد لكل إشعار
+                const animationName = `marquee-rtl-${notif.id}`;
+                // أضف keyframes ديناميكي إذا لم يكن موجوداً
+                if (!document.getElementById(animationName)) {
+                  const style = document.createElement('style');
+                  style.id = animationName;
+                  style.innerHTML = `
+                    @keyframes ${animationName} {
+                      0%   { transform: translateX(-100%); }
+                      100% { transform: translateX(100%); }
+                    }
+                  `;
+                  document.head.appendChild(style);
+                }
+            
+                // إنشاء عنصر نصي مؤقت لحساب الطول
+                const tempSpan = document.createElement('span');
+                tempSpan.style.visibility = 'hidden';
+                tempSpan.style.position = 'absolute';
+                tempSpan.style.whiteSpace = 'nowrap';
+                tempSpan.style.fontWeight = '500';
+                tempSpan.style.fontSize = '1.1rem';
+                tempSpan.innerText = `${notif.title} : ${notif.message}`;
+                document.body.appendChild(tempSpan);
+            
+                // حساب مدة الأنيميشن (كل 20px = 1 ثانية، الحد الأدنى 12 ثانية)
+                const textWidth = tempSpan.offsetWidth;
+                const containerWidth = studentInfo.offsetWidth || 400;
+                let duration = 50;
+                document.body.removeChild(tempSpan);
+            
+                wrapper.innerHTML = `<span class="marquee-close" onclick="this.parentElement.style.display='none'">x</span>
+                  <span class="text"
+                    style="animation-name:${animationName};animation-duration:${duration}s;animation-timing-function:linear;animation-iteration-count:infinite;direction:rtl;display:inline-block;white-space:nowrap;">
+                    ${notif.title} : ${notif.message}
+                  </span>`;
+                studentInfo.prepend(wrapper); // من الأقدم إلى الأحدث
+              });
+            }
             loadStudentImages();
+            showStudentNotification();
         }
 
         function showAdminAbsenceReport() {
@@ -5612,8 +5803,128 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
         }
         document.getElementById('adminAbsenceReport').innerHTML = html;
     }
+
+    
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('cut', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    document.addEventListener('keydown', function(e) {
+    if (
+        (e.ctrlKey && (e.key === 's' || e.key === 'u' || e.key === 'c' || e.key === 'p')) ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'i' || e.key === 'c' || e.key === 'j')) ||
+        e.key === 'F12'
+    ) {
+        e.preventDefault();
+        return false;
+    }
+});
+    
+    function updateNotifTargetOptions() {
+      const type = document.getElementById('notifTargetType').value;
+      const container = document.getElementById('notifTargetValueContainer');
+      if (type === 'school') {
+        container.innerHTML = `<input type="hidden" id="notifTargetValue" value="all">`;
+      } else if (type === 'grade') {
+        container.innerHTML = `
+          <select id="notifTargetValue" class="w-full p-2 border rounded">
+            <option value="10">العاشر</option>
+            <option value="11">الحادي عشر</option>
+            <option value="12">الثاني عشر</option>
+          </select>
+        `;
+      } else if (type === 'section') {
+        // توليد جميع الشعب الـ 18
+        const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+        let options = '';
+        // العاشر: 4 شعب
+        for (let i = 0; i < 4; i++) options += `<option value="العاشر ${arabicLetters[i]}">العاشر ${arabicLetters[i]}</option>`;
+        // الحادي عشر: 8 شعب
+        for (let i = 0; i < 8; i++) options += `<option value="الحادي عشر ${arabicLetters[i]}">الحادي عشر ${arabicLetters[i]}</option>`;
+        // الثاني عشر: 6 شعب
+        for (let i = 0; i < 6; i++) options += `<option value="الثاني عشر ${arabicLetters[i]}">الثاني عشر ${arabicLetters[i]}</option>`;
+        container.innerHTML = `<select id="notifTargetValue" class="w-full p-2 border rounded">${options}</select>`;
+      }
+    }
+    updateNotifTargetOptions();
+    
+    async function sendNotification(e) {
+      e.preventDefault();
+      if (currentUserType !== 'admin') {
+        showNotification('غير مصرح بإرسال الإشعارات', 'error');
+        return;
+      }
+      const title = document.getElementById('notifTitle').value.trim();
+      const message = document.getElementById('notifMessage').value.trim();
+      const target_type = document.getElementById('notifTargetType').value;
+      const target_value = document.getElementById('notifTargetValue').value;
+      if (!title || !message) return alert('أكمل الحقول');
+    
+      const { error } = await supabase.from('notifications').insert([{
+        title, message, target_type, target_value, is_active: true, created_by: (currentUser?.full_name || currentUser?.username || 'admin')
+      }]);
+      if (error) {
+        console.error(error);
+        showNotification('خطأ أثناء إرسال الإشعار','error');
+      } else {
+        showNotification('تم إرسال الإشعار','success');
+        document.getElementById('notificationForm').reset();
+        updateNotifTargetOptions();
+        loadNotificationsList();
+      }
+    }
+    
+    async function loadNotificationsList() {
+      const container = document.getElementById('notificationsList');
+      if (!container) return;
+      container.innerHTML = 'جاري التحميل...';
+      const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
+      if (error) { container.innerHTML = '<div class="text-red-600">خطأ في تحميل الإشعارات</div>'; return; }
+      container.innerHTML = data.map(n=>`
+        <div class="bg-gray-50 p-3 rounded mb-2 flex justify-between items-start">
+          <div>
+            <div class="font-bold">${n.title}</div>
+            <div class="text-sm text-gray-700">${n.message}</div>
+            <div class="text-xs text-gray-500 mt-1">${n.target_type==='school'?'كل المدرسة': n.target_type==='grade'?('مرحلة '+n.target_value):('شعبة '+n.target_value)} - ${n.created_at? n.created_at.split('T')[0]:''}</div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <button onclick="toggleNotificationActive(${n.id}, ${n.is_active?0:1})" class="px-3 py-1 rounded ${n.is_active? 'bg-red-600 text-white':'bg-green-600 text-white'}">
+              ${n.is_active? 'إخفاء':'إظهار'}
+            </button>
+            <button onclick="deleteNotification(${n.id})" class="px-3 py-1 rounded bg-gray-200">حذف</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    async function toggleNotificationActive(id, val) {
+      await supabase.from('notifications').update({ is_active: val===1 }).eq('id', id);
+      loadNotificationsList();
+    }
+    async function deleteNotification(id) {
+      if(!confirm('حذف الإشعار؟')) return;
+      await supabase.from('notifications').delete().eq('id', id);
+      loadNotificationsList();
+    }
+
+    function insertEmojiToNotifMessage() {
+      const emoji = document.getElementById('emojiPicker').value;
+      if (!emoji) return;
+      const textarea = document.getElementById('notifMessage');
+      // أدخل الإيموجي في مكان المؤشر
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const text = textarea.value;
+      textarea.value = text.slice(0, start) + emoji + text.slice(end);
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+      document.getElementById('emojiPicker').selectedIndex = 0; // إعادة القائمة للوضع الافتراضي
+    }
     
     </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
+
+
+    
