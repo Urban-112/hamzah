@@ -2301,7 +2301,7 @@
                   style.id = animationName;
                   style.innerHTML = `
                     @keyframes ${animationName} {
-                      0%   { transform: translateX(-100%); }
+                      0%   { transform: translateX(-75%); }
                       100% { transform: translateX(100%); }
                     }
                   `;
@@ -2321,7 +2321,7 @@
                 // حساب مدة الأنيميشن (كل 20px = 1 ثانية، الحد الأدنى 12 ثانية)
                 const textWidth = tempSpan.offsetWidth;
                 const containerWidth = studentInfo.offsetWidth || 400;
-                let duration = 50;
+                let duration = 50;                
                 document.body.removeChild(tempSpan);
             
                 wrapper.innerHTML = `<span class="marquee-close" onclick="this.parentElement.style.display='none'">x</span>
@@ -2329,7 +2329,7 @@
                     style="animation-name:${animationName};animation-duration:${duration}s;animation-timing-function:linear;animation-iteration-count:infinite;direction:rtl;display:inline-block;white-space:nowrap;">
                     ${notif.title} : ${notif.message}
                   </span>`;
-                studentInfo.prepend(wrapper); // من الأقدم إلى الأحدث
+                studentInfo.insertBefore(wrapper, studentInfo.firstChild);
               });
             }
             loadStudentImages();
