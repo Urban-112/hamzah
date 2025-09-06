@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المعلومات الشامل - مدرسة الأمير حمزة الثانوية للبنين</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bcryptjs/2.4.3/bcrypt.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -22,41 +23,42 @@
           50% {background-position:100% 50%;}
           100% {background-position:0% 50%;}
         }
+        
+        ::-webkit-scrollbar {
+          width: 8px;
+          background: #f3f4f6;
+          border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          border-radius: 8px;
+        }
+
+        .modal-content {
+          animation: modalPop 0.35s cubic-bezier(.4,2,.3,1);
+        }
+        @keyframes modalPop {
+          0% { opacity: 0; transform: scale(0.92) translateY(30px);}
+          100% { opacity: 1; transform: scale(1) translateY(0);}
+        }
          
         /* CSS للإشعار المتحرك */
         .marquee-notif {
-          position: relative;
-          overflow: hidden;
-          font-size: 1.1rem;
-          border: none;
           background: linear-gradient(90deg, #6366f1 0%, #06b6d4 100%);
           color: #fff;
-          padding: 14px 22px 14px 44px;
+          font-weight: 600;
           border-radius: 16px;
-          margin-bottom: 18px;
-          box-shadow: 0 8px 32px rgba(59,130,246,0.18), 0 2px 8px rgba(0,0,0,0.08);
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          transition: box-shadow 0.3s, transform 0.3s;
-  }
+          box-shadow: 0 8px 32px rgba(59,130,246,0.18);
+        }
         .marquee-notif::before {
-            content: "\f0f3";
-          font-family: "Font Awesome 6 Free";
-          font-weight: 900;
-          font-size: 1.5rem;
-          color: #fbbf24;
-          margin-left: 8px;
-          margin-right: 8px;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
-          content: "\f0f3";
-          font-family: "Font Awesome 6 Free";
-          font-weight: 900;
-          font-size: 1.5rem;
-          color: #fbbf24;
-          margin-left: 8px;
-          margin-right: 8px;
-          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+          animation: bellShake 1.5s infinite;
+        }
+        @keyframes bellShake {
+          0%, 100% { transform: rotate(0);}
+          20% { transform: rotate(-15deg);}
+          40% { transform: rotate(10deg);}
+          60% { transform: rotate(-5deg);}
+          80% { transform: rotate(5deg);}
         }
         .marquee-notif:hover {
           box-shadow: 0 12px 40px rgba(59,130,246,0.28), 0 4px 16px rgba(0,0,0,0.12);
@@ -133,6 +135,20 @@
             background: rgba(255,255,255,0.75);
             backdrop-filter: blur(8px);
             box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        .sync-indicator {
+          background: rgba(255,255,255,0.95);
+          border-radius: 16px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+        }
+        .sync-spinner {
+          border: 3px solid #e5e7eb;
+          border-top: 3px solid #6366f1;
+          border-radius: 50%;
+          width: 22px;
+          height: 22px;
+          animation: spin 1s linear infinite;
         }
         
         /* تدرج وأنيماشن للأزرار */
@@ -2301,7 +2317,7 @@
                   style.id = animationName;
                   style.innerHTML = `
                     @keyframes ${animationName} {
-                      0%   { transform: translateX(-65%); }
+                      0%   { transform: translateX(-75%); }
                       100% { transform: translateX(100%); }
                     }
                   `;
@@ -5550,7 +5566,7 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
 
     async function showNoteModal(noteId) {
         // جلب الملاحظة من قاعدة البيانات
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from('student_notes')
             .select('*')
             .eq('id', noteId)
@@ -5559,16 +5575,30 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             showNotification('حدث خطأ في جلب الملاحظة', 'error');
             return;
         }
-        // إذا كانت الحالة قيد الانتظار، حدثها إلى تمت المشاهدة
+        // إذا كانت الحالة قيد الانتظار، حدثها إلى تمت المشاهدة في Supabase وانتظر انتهاء العملية
         if (data.status === 'pending') {
-            await supabase
+            const { error: updateError } = await supabase
                 .from('student_notes')
                 .update({ status: 'seen' })
                 .eq('id', noteId);
-            // إعادة تحميل الملاحظات بعد القراءة
-            loadAdminStudentNotes();
+            if (updateError) {
+                showNotification('حدث خطأ أثناء تحديث الحالة', 'error');
+                return;
+            }
+            // بعد التحديث، جلب الملاحظة من جديد من Supabase لضمان أن الحالة من القاعدة فعلاً
+            let { data: updatedNote, error: fetchError } = await supabase
+                .from('student_notes')
+                .select('*')
+                .eq('id', noteId)
+                .single();
+            if (!fetchError && updatedNote) {
+                data = updatedNote;
+            }
+            // إعادة تحميل ملاحظات الطالب والمسؤول من القاعدة مباشرة
+            if (typeof loadStudentNotes === 'function') await loadStudentNotes();
+            if (typeof loadAdminStudentNotes === 'function') await loadAdminStudentNotes();
         }
-        // عرض الملاحظة في نافذة منبثقة
+        // عرض الملاحظة في نافذة منبثقة بالحالة الجديدة من القاعدة
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
         modal.innerHTML = `
@@ -5928,4 +5958,3 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
 
 
     
-
