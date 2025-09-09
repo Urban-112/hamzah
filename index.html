@@ -23,6 +23,29 @@
           50% {background-position:100% 50%;}
           100% {background-position:0% 50%;}
         }
+
+        table.absence-table {
+          border-collapse: collapse;
+        }
+        table.absence-table th, table.absence-table td {
+          border: 1px solid #d1d5db; /* لون رمادي فاتح */
+          padding: 6px 8px;
+          text-align: center;
+        }
+        table.absence-table th {
+          background: #f3f4f6;
+        }
+        table.absence-table {
+          border-collapse: collapse;
+        }
+        table.absence-table th, table.absence-table td {
+          border: 1px solid #d1d5db;
+          padding: 6px 8px;
+          text-align: center;
+        }
+        table.absence-table th {
+          background: #f3f4f6;
+        }
         
         ::-webkit-scrollbar {
           width: 8px;
@@ -594,23 +617,105 @@
                     الكل
                 </button>
                 <script>
-                    function searchAbsenceByStudentName() {
-                        // Add logic to search for student absences by name
-                        console.log("Searching for student absences...");
-                    }
-                
-                    function showAdminAbsenceReport() {
-                        // Add logic to display all absence reports
-                        console.log("Displaying all absence reports...");
+                    async function showAdminAbsenceReport() {
+                        await loadStudentAbsences();
+                        const container = document.getElementById('adminAbsenceReport');
+                        if (!container) return;
+                    
+                        // واجهة اختيار المرحلة والشعبة والشهر
+                        container.innerHTML = `
+                            <div class="flex flex-wrap gap-4 mb-6 items-end">
+                                <div>
+                                    <label class="block text-gray-700 font-semibold mb-1">المرحلة</label>
+                                    <select id="absenceStageSelect" class="p-2 border rounded w-40">
+                                        <option value="">اختر المرحلة</option>
+                                        <option value="10">العاشر</option>
+                                        <option value="11">الحادي عشر أكاديمي</option>
+                                        <option value="12">الثاني عشر أكاديمي</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-700 font-semibold mb-1">الشعبة</label>
+                                    <select id="absenceSectionSelect" class="p-2 border rounded w-40">
+                                        <option value="">اختر الشعبة</option>
+                                    </select>
+                                </div>
+                                <button onclick="showSectionAbsenceTable()" class="btn-primary text-white px-6 py-2 rounded font-semibold">
+                                    <i class="fas fa-table mr-2"></i> عرض تقرير الشعبة
+                                </button>
+                            </div>
+                            <div id="sectionAbsenceTable"></div>
+                        `;
+                    
+                        // توليد الشعب عند اختيار المرحلة
+                        document.getElementById('absenceStageSelect').onchange = function() {
+                            const grade = this.value;
+                            const sectionSelect = document.getElementById('absenceSectionSelect');
+                            sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                            if (grade) {
+                                const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                                for (let i = 0; i < maxSections; i++) {
+                                    sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                                }
+                            }
+                        };
+                    
+                        // توليد الأشهر من تاريخ 24/8/2025
+                        function populateMonths() {
+                            const monthSelect = document.getElementById('absenceMonthSelect');
+                            monthSelect.innerHTML = '';
+                            const startDate = new Date('2025-08-24');
+                            const today = new Date();
+                            let months = [];
+                            let d = new Date(startDate);
+                            while (d <= today) {
+                                months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                                d.setMonth(d.getMonth() + 1);
+                            }
+                            months.forEach(m => {
+                                monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                            });
+                        }
+                        populateMonths();
+                    
+                        // عند اختيار الشعبة أو الشهر، أظهر الجدول فقط عند الضغط على زر "عرض التقرير"
+                        document.getElementById('absenceSectionSelect').onchange = showMonthlyAbsenceTable;
+                        document.getElementById('absenceMonthSelect').onchange = showMonthlyAbsenceTable;
                     }
                 </script>
             </div>
+            <div id="adminDailyAbsenceReport"></div>
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <h3 class="text-xl font-bold text-yellow-800 mb-6">
                     <i class="fas fa-calendar-times mr-2"></i>
                     تقارير الغياب الشاملة للطلبة
                 </h3>
-                <div id="adminAbsenceReport"></div>
+                <div id="adminAbsenceReport">
+                    <div class="flex flex-wrap gap-4 mb-6 items-end">
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-1">المرحلة</label>
+                            <select id="absenceStageSelect" class="p-2 border rounded w-40">
+                                <option value="">اختر المرحلة</option>
+                                <option value="10">العاشر</option>
+                                <option value="11">الحادي عشر أكاديمي</option>
+                                <option value="12">الثاني عشر أكاديمي</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-1">الشعبة</label>
+                            <select id="absenceSectionSelect" class="p-2 border rounded w-40">
+                                <option value="">اختر الشعبة</option>
+                            </select>
+                        </div>
+                        <button onclick="showSectionAbsenceTable()" class="btn-primary text-white px-6 py-2 rounded font-semibold">
+                            <i class="fas fa-table mr-2"></i> عرض تقرير الشعبة
+                        </button>
+                    </div>
+                    <div id="sectionAbsenceTable"></div>
+                    <div id="monthlyAbsenceTable"></div>
+                </div>
             </div>
         </div>
 
@@ -896,6 +1001,25 @@
                 </div>
             </div>
         </div>
+        <div id="studentAbsenceReportTab" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-yellow-800 mb-4">
+                    <i class="fas fa-calendar-times mr-2"></i>
+                    تقرير الغياب والمغادرات والتأخير
+                </h3>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>الحصة (مغادرة)</th>
+                            <th>التأخير</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentAbsenceReportBody"></tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- Teacher Dashboard -->
         <div id="teacherDashboard" class="tab-content">
@@ -936,6 +1060,15 @@
         </div>
 
         <!-- Teacher Students Tab -->
+        <div id="teacherAbsenceTab" class="tab-content">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold text-yellow-800 mb-6">
+                    <i class="fas fa-calendar-times mr-2"></i>
+                    غيابات الطلبة في الشعبة
+                </h3>
+                <div id="teacherAbsenceTable"></div>
+            </div>
+        </div>
         <div id="teacherStudentsTab" class="tab-content">
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <div class="mb-4">
@@ -1496,7 +1629,6 @@
             }
         }
 
-        // ...existing code...
         // Load all data from Supabase
         async function loadAllData() {
             showSyncIndicator('جاري تحميل البيانات...');
@@ -1697,6 +1829,49 @@
                 </div>
             `;
             container.innerHTML = html;
+        }
+
+                // جدول غيابات الطلبة للمعلم حسب الشعبة
+        function showTeacherAbsenceTable() {
+            if (!currentUser || !currentUser.section) return;
+            const sectionCompare = currentUser.section.replace(' أكاديمي', '').trim();
+            const students = allStudents.filter(s =>
+                s.section && s.section.replace(' أكاديمي', '').trim() === sectionCompare
+            );
+            if (students.length === 0) {
+                document.getElementById('teacherAbsenceTable').innerHTML = '<div class="text-center text-gray-500 py-6">لا يوجد طلبة في هذه الشعبة</div>';
+                return;
+            }
+            const absences = allStudentAbsences.filter(a => students.some(s => s.id === a.student_id));
+            const dates = [...new Set(absences.map(a => a.date))].sort();
+            let html = `<div class="overflow-x-auto"><table class="absence-table w-full text-xs border">
+                <thead>
+                    <tr>
+                        <th>الطالب</th>
+                        ${dates.map(date => {
+                            const dayName = new Date(date).toLocaleDateString('ar-EG', { weekday: 'long' });
+                            return `<th>${date}<br><span style="font-size:11px;color:#888">${dayName}</span></th>`;
+                        }).join('')}
+                        <th>تقرير مفصل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${students.map(student => `
+                        <tr>
+                            <td class="font-bold">${student.full_name}</td>
+                            ${dates.map(date => {
+                                const absence = absences.find(a => a.student_id === student.id && a.date === date);
+                                if (!absence) return `<td style="background:#22c55e;color:white;font-weight:bold">حضور</td>`;
+                                let color = absence.absence_type === 'absence' ? '#ef4444' : absence.absence_type === 'leave' ? '#f59e0b' : '#fbbf24';
+                                let typeText = absence.absence_type === 'absence' ? 'غياب' : absence.absence_type === 'leave' ? 'مغادرة' : 'تأخير';
+                                return `<td style="background:${color};color:white;font-weight:bold">${typeText}</td>`;
+                            }).join('')}
+                            <td><button onclick="showStudentAbsenceDetails('${student.id}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">عرض</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table></div>`;
+            document.getElementById('teacherAbsenceTable').innerHTML = html;
         }
 
         async function loadAdminStudentNotes() {
@@ -2083,6 +2258,10 @@
                             <i class="fas fa-comment-dots mr-2"></i>
                             ملاحظات وشكاوى
                         </button>
+                    <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('studentAbsenceReportTab', event)">
+                        <i class="fas fa-calendar-times mr-2"></i>
+                        تقرير الغياب
+                    </button>
                     `;
                 showTab('studentDashboard');
             } else if (currentUserType === 'teacher') {
@@ -2102,6 +2281,10 @@
                     <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('uploadImageTab', event)">
                         <i class="fas fa-image mr-2"></i>
                         رفع صورة للطلاب
+                    </button>
+                     <button class="tab-button px-6 py-3 font-semibold" onclick="showTab('teacherAbsenceTab', event)">
+                        <i class="fas fa-calendar-times mr-2"></i>
+                        غيابات الطلبة
                     </button>
                 `;
                 showTab('teacherDashboard');
@@ -2159,11 +2342,17 @@
             if (tabId === 'uploadImageTab') {
                 prepareImageSectionOptions();
             }
+            if (tabId === 'teacherAbsenceTab') {
+                showTeacherAbsenceTable();
+            }
             if (tabId === 'adminNotificationsTab') {
                loadNotificationsList();
             }
             if (tabId === 'adminStudentNotesTab') {
                loadAdminStudentNotes();
+            }
+            if (tabId === 'studentAbsenceReportTab') {
+                loadStudentAbsenceReport();
             }
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
@@ -2352,86 +2541,572 @@
             showStudentNotification();
         }
 
-        function showAdminAbsenceReport() {
-            const today = new Date().toISOString().split('T')[0];
-            const todayAbsences = allStudentAbsences.filter(a => a.date === today);
-            let dailyHtml = `
-                <div class="bg-blue-50 p-4 rounded-lg mb-4 flex items-center justify-between">
-                    <span class="font-semibold text-blue-800">
-                        <i class="fas fa-calendar-day mr-2"></i>
-                        عدد الطلبة الغائبين اليوم بالكامل:
-                    </span>
-                    <span class="font-bold text-blue-600 text-xl">${todayAbsences.length}</span>
+        async function showAdminAbsenceReport() {
+            await loadStudentAbsences();
+            const container = document.getElementById('adminAbsenceReport');
+            if (!container) return;
+        
+            // عناصر البحث
+            let searchHtml = `
+                <div class="flex flex-wrap gap-4 mb-6 items-end">
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1">بحث باسم الطالب</label>
+                        <input type="text" id="absenceStudentSearch" class="p-2 border rounded w-48" placeholder="اسم الطالب...">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1">تاريخ الغياب</label>
+                        <input type="date" id="absenceDateSearch" class="p-2 border rounded w-48">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1">الصف</label>
+                        <select id="absenceGradeSearch" class="p-2 border rounded w-40">
+                            <option value="">كل الصفوف</option>
+                            <option value="10">العاشر</option>
+                            <option value="11">الحادي عشر أكاديمي</option>
+                            <option value="12">الثاني عشر أكاديمي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1">الشعبة</label>
+                        <select id="absenceSectionSearch" class="p-2 border rounded w-40">
+                            <option value="">كل الشعب</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-1">نوع الغياب</label>
+                        <select id="absenceTypeSearch" class="p-2 border rounded w-40">
+                            <option value="">الكل</option>
+                            <option value="absence">غياب كامل</option>
+                            <option value="leave">مغادرة</option>
+                            <option value="late">تأخير</option>
+                        </select>
+                    </div>
+                    <button onclick="filterAbsenceReport()" class="btn-primary text-white px-6 py-2 rounded font-semibold">
+                        <i class="fas fa-search mr-2"></i> بحث
+                    </button>
+                    <button onclick="resetAbsenceFilters()" class="bg-gray-400 text-white px-4 py-2 rounded font-semibold">
+                        <i class="fas fa-redo mr-2"></i> إعادة تعيين
+                    </button>
                 </div>
+                <div id="absenceReportResult">
+                    <div class="flex gap-4 mb-4">
+                        <select id="sectionGradeSelect" class="p-2 border rounded w-40" onchange="renderSectionButtons()">
+                            <option value="">اختر الصف</option>
+                            <option value="10">العاشر</option>
+                            <option value="11">الحادي عشر أكاديمي</option>
+                            <option value="12">الثاني عشر أكاديمي</option>
+                        </select>
+                    </div>
+                    <div id="sectionButtonsList" class="flex flex-wrap gap-2 mb-4"></div>
+                    <div id="sectionAbsenceTable"></div></div>
             `;
-            // تصنيف الغياب اليومي حسب الصف والشعبة
+        
+            container.innerHTML = searchHtml + `<div id="absenceReportTables"></div>`;
+        
+            // تعبئة الشعب حسب الصف
+            document.getElementById('absenceGradeSearch').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSearch');
+                sectionSelect.innerHTML = '<option value="">كل الشعب</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+        
+            // عرض الجداول الافتراضية (كل الغيابات مفصلة حسب الصف والشعبة)        
+            // البحث عند الضغط على Enter في أي حقل
+            ['absenceStudentSearch','absenceDateSearch'].forEach(id => {
+                document.getElementById(id).addEventListener('keydown', e => {
+                    if (e.key === 'Enter') filterAbsenceReport();
+                });
+            });
+            showDailyAbsenceReportForAdmin();
+                        // توليد الشعب عند اختيار المرحلة
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+            
+            // توليد الأشهر من تاريخ 24/8/2025
+            function populateMonths() {
+                const monthSelect = document.getElementById('absenceMonthSelect');
+                monthSelect.innerHTML = '';
+                const startDate = new Date('2025-08-24');
+                const today = new Date();
+                let months = [];
+                let d = new Date(startDate);
+                while (d <= today) {
+                    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                    d.setMonth(d.getMonth() + 1);
+                }
+                months.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                });
+            }
+            populateMonths();
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+        }
+
+         function renderSectionButtons() {
+            const grade = document.getElementById('sectionGradeSelect').value;
+            const container = document.getElementById('sectionButtonsList');
+            container.innerHTML = '';
+            if (!grade) return;
+            const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+            let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+            let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+            for (let i = 0; i < maxSections; i++) {
+                const sectionName = `${gradeText} ${arabicLetters[i]}`;
+                container.innerHTML += `
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded font-semibold mb-2" onclick="showSectionAbsenceTable('${sectionName}')">
+                        ${sectionName}
+                    </button>
+                `;
+            }
+        }
+        
+        // دالة عرض الجداول المفصلة حسب الصف والشعبة
+        function renderAbsenceTables(filteredAbsences = null) {
+            const container = document.getElementById('absenceReportTables');
+            const absences = filteredAbsences || allStudentAbsences;
             const grades = ['10', '11', '12'];
             const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
-            let gradeSectionHtml = '';
-            grades.forEach(grade => {
-                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر' : 'الثاني عشر';
-                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
-                for (let i = 0; i < maxSections; i++) {
-                    const section = `${gradeText} ${arabicLetters[i]}`;
-                    const studentsInSection = allStudents.filter(s => s.grade === grade && s.section === section);
-                    const absencesToday = studentsInSection.filter(student =>
-                        todayAbsences.some(a => a.student_id === student.id)
-                    ).length;
-                    gradeSectionHtml += `
-                        <div class="flex justify-between items-center p-2 bg-white rounded mb-1">
-                            <span class="font-medium">${section}</span>
-                            <span class="font-bold text-blue-600">${absencesToday} غياب اليوم</span>
-                        </div>
-                    `;
-                }
-            });
-            dailyHtml += `
-                <div class="bg-white p-4 rounded-lg mb-4">
-                    <h4 class="font-semibold text-blue-800 mb-2">تفصيل الغياب اليومي حسب الصف والشعبة</h4>
-                    ${gradeSectionHtml}
-                </div>
-            `;
-            // الجدول التفصيلي القديم
             let html = '';
+        
             grades.forEach(grade => {
                 let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر' : 'الثاني عشر';
-                html += `<h4 class="font-semibold text-blue-800 mt-4 mb-2">${gradeText}</h4>`;
                 let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
                 for (let i = 0; i < maxSections; i++) {
-                    const section = `${gradeText} ${arabicLetters[i]}`;
-                    const students = allStudents.filter(s => s.grade === grade && s.section === section);
+                    const sectionName = `${gradeText} ${arabicLetters[i]}`;
+                    const students = allStudents.filter(s =>
+                        String(s.grade) === String(grade) &&
+                        s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+                    );
                     if (students.length === 0) continue;
-                    html += `<div class="bg-gray-50 p-3 rounded-lg mb-2">
-                        <span class="font-bold text-indigo-800">${section}</span>
-                        <table class="w-full mt-2 text-sm">
+                    // جلب جميع التواريخ المسجلة للغياب في هذه الشعبة
+                    const absencesInSection = absences.filter(a => students.some(s => s.id === a.student_id));
+                    const dates = [...new Set(absencesInSection.map(a => a.date))].sort();
+                    html += `<div class="mb-8">
+                        <h4 class="font-bold text-indigo-800 text-lg mb-2"><i class="fas fa-layer-group mr-2"></i> ${sectionName}</h4>
+                        <div class="overflow-x-auto">
+                        <table class="absence-table w-full text-xs border">
                             <thead>
                                 <tr>
-                                    <th class="text-right p-2">الاسم</th>
-                                    <th class="text-right p-2">عدد أيام الغياب</th>
-                                    <th class="text-right p-2">تواريخ الغياب</th>
+                                    <th>الطالب</th>
+                                    ${dates.map(date => {
+                                        const dayName = new Date(date).toLocaleDateString('ar-EG', { weekday: 'long' });
+                                        return `<th>${date}<br><span style="font-size:11px;color:#888">${dayName}</span></th>`;
+                                    }).join('')}
                                 </tr>
                             </thead>
                             <tbody>
-                                ${students.map(student => {
-                                    const absences = allStudentAbsences.filter(a => a.student_id === student.id);
-                                    let color = absences.length >= 20 ? 'bg-red-100 text-red-700' : absences.length >= 15 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
-                                    return `
-                                        <tr class="${color}">
-                                            <td class="p-2">${student.full_name}</td>
-                                            <td class="p-2 font-bold">${absences.length} / 20</td>
-                                            <td class="p-2">${absences.map(a => a.date).join(', ')}</td>
-                                        </tr>
-                                    `;
-                                }).join('')}
+                                ${students.map(student => `
+                                    <tr>
+                                        <td class="font-bold">${student.full_name}</td>
+                                        ${dates.map(date => {
+                                            const absence = absencesInSection.find(a => a.student_id === student.id && a.date === date);
+                                            if (!absence) return `<td></td>`;
+                                            let typeText = absence.absence_type === 'absence' ? 'غياب' : absence.absence_type === 'leave' ? 'مغادرة' : 'تأخير';
+                                            let color = absence.absence_type === 'absence' ? '#ef4444' : absence.absence_type === 'leave' ? '#f59e0b' : '#fbbf24';
+                                            return `<td style="background:${color};color:white;font-weight:bold">${typeText}</td>`;
+                                        }).join('')}
+                                    </tr>
+                                `).join('')}
                             </tbody>
                         </table>
+                        </div>
                     </div>`;
                 }
             });
-            const container = document.getElementById('adminAbsenceReport');
-            container.innerHTML = dailyHtml + html;
+            container.innerHTML = html;
+                        // توليد الشعب عند اختيار المرحلة
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+            
+            // توليد الأشهر من تاريخ 24/8/2025
+            function populateMonths() {
+                const monthSelect = document.getElementById('absenceMonthSelect');
+                monthSelect.innerHTML = '';
+                const startDate = new Date('2025-08-24');
+                const today = new Date();
+                let months = [];
+                let d = new Date(startDate);
+                while (d <= today) {
+                    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                    d.setMonth(d.getMonth() + 1);
+                }
+                months.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                });
+            }
+            populateMonths();
+        }
+        
+        // دالة عرض تفاصيل غيابات طالب في نافذة منبثقة
+        function showStudentAbsenceDetails(studentId) {
+            const student = allStudents.find(s => s.id === studentId);
+            const absences = allStudentAbsences.filter(a => a.student_id === studentId);
+            let html = `
+                <div class="modal-content bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold text-blue-800">
+                            <i class="fas fa-user-graduate mr-2"></i>
+                            تفاصيل الغياب للطالب: ${student.full_name}
+                        </h3>
+                        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="mb-4">
+                        <span class="font-bold text-blue-800">الشعبة:</span> <span>${student.section}</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                    <table class="w-full text-sm border">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>اليوم</th>
+                                <th>النوع</th>
+                                <th>الحصة (مغادرة)</th>
+                                <th>التأخير</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${absences.length === 0 ? `<tr><td colspan="5" class="text-center text-gray-500">لا يوجد غيابات</td></tr>` :
+                                absences.map(a => {
+                                    const dayName = a.date ? new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'long' }) : '';
+                                    return `
+                                        <tr>
+                                            <td>${a.date}</td>
+                                            <td>${dayName}</td>
+                                            <td>${a.absence_type === 'absence' ? 'غياب كامل' : a.absence_type === 'leave' ? 'مغادرة' : 'تأخير'}</td>
+                                            <td>${a.absence_type === 'leave' ? (a.leave_period ? 'الحصة ' + a.leave_period : '-') : '-'}</td>
+                                            <td>${a.absence_type === 'late' ? `${a.late_hours || 0} ساعة و${a.late_minutes || 0} دقيقة` : '-'}</td>
+                                        </tr>
+                                    `;
+                                }).join('')
+                            }
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            `;
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+                        // توليد الشعب عند اختيار المرحلة
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+            
+            // توليد الأشهر من تاريخ 24/8/2025
+            function populateMonths() {
+                const monthSelect = document.getElementById('absenceMonthSelect');
+                monthSelect.innerHTML = '';
+                const startDate = new Date('2025-08-24');
+                const today = new Date();
+                let months = [];
+                let d = new Date(startDate);
+                while (d <= today) {
+                    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                    d.setMonth(d.getMonth() + 1);
+                }
+                months.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                });
+            }
+            populateMonths();
+        }
+        
+        // دالة البحث والتصفية
+        function filterAbsenceReport() {
+            const name = document.getElementById('absenceStudentSearch').value.trim().toLowerCase();
+            const date = document.getElementById('absenceDateSearch').value;
+            const grade = document.getElementById('absenceGradeSearch').value;
+            const section = document.getElementById('absenceSectionSearch').value;
+            const type = document.getElementById('absenceTypeSearch') ? document.getElementById('absenceTypeSearch').value : '';
+        
+            let filtered = allStudentAbsences;
+        
+            if (name) {
+                const matchedStudents = allStudents.filter(s =>
+                    s.full_name && s.full_name.replace(/\s+/g, '').toLowerCase().includes(name.replace(/\s+/g, ''))
+                ).map(s => s.id);
+                filtered = filtered.filter(a => matchedStudents.includes(a.student_id));
+            }
+            if (date) {
+                filtered = filtered.filter(a => a.date === date);
+            }
+            if (grade) {
+                filtered = filtered.filter(a => {
+                    const student = allStudents.find(s => s.id === a.student_id);
+                    return student && student.grade === grade;
+                });
+            }
+            if (section) {
+                filtered = filtered.filter(a => {
+                    const student = allStudents.find(s => s.id === a.student_id);
+                    return student && student.section === section;
+                });
+            }
+            if (type) {
+                filtered = filtered.filter(a => a.absence_type === type);
+            }
+        
+            // عرض النتائج في جدول مفصل
+            const resultDiv = document.getElementById('absenceReportResult');
+            if (filtered.length === 0) {
+                resultDiv.innerHTML = '<div class="text-center text-red-600 font-bold py-6">لا توجد نتائج مطابقة</div>';
+                document.getElementById('absenceReportTables').innerHTML = '';
+                return;
+            }
+            let html = `
+                <div class="overflow-x-auto mb-8">
+                <table class="w-full text-sm border">
+                    <thead>
+                        <tr>
+                            <th>اسم الطالب</th>
+                            <th>الصف</th>
+                            <th>الشعبة</th>
+                            <th>التاريخ</th>
+                            <th>اليوم</th>
+                            <th>النوع</th>
+                            <th>الحصة (مغادرة)</th>
+                            <th>التأخير</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filtered.map(a => {
+                            const student = allStudents.find(s => s.id === a.student_id) || {};
+                            const dayName = a.date ? new Date(a.date).toLocaleDateString('ar-EG', { weekday: 'long' }) : '';
+                            return `
+                                <tr>
+                                    <td>${student.full_name || ''}</td>
+                                    <td>${student.grade || ''}</td>
+                                    <td>${student.section || ''}</td>
+                                    <td>${a.date || ''}</td>
+                                    <td>${dayName}</td>
+                                    <td>${a.absence_type === 'absence' ? 'غياب كامل' : a.absence_type === 'leave' ? 'مغادرة' : 'تأخير'}</td>
+                                    <td>${a.absence_type === 'leave' ? (a.leave_period ? 'الحصة ' + a.leave_period : '-') : '-'}</td>
+                                    <td>${a.absence_type === 'late' ? `${a.late_hours || 0} ساعة و${a.late_minutes || 0} دقيقة` : '-'}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+                </div>
+            `;
+            resultDiv.innerHTML = html;
+            document.getElementById('absenceReportTables').innerHTML = '';
+                        // توليد الشعب عند اختيار المرحلة
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+            
+            // توليد الأشهر من تاريخ 24/8/2025
+            function populateMonths() {
+                const monthSelect = document.getElementById('absenceMonthSelect');
+                monthSelect.innerHTML = '';
+                const startDate = new Date('2025-08-24');
+                const today = new Date();
+                let months = [];
+                let d = new Date(startDate);
+                while (d <= today) {
+                    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                    d.setMonth(d.getMonth() + 1);
+                }
+                months.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                });
+            }
+            populateMonths();
+        }
+        
+        // زر إعادة تعيين الفلاتر
+        function resetAbsenceFilters() {
+            document.getElementById('absenceStudentSearch').value = '';
+            document.getElementById('absenceDateSearch').value = '';
+            document.getElementById('absenceGradeSearch').value = '';
+            document.getElementById('absenceSectionSearch').innerHTML = '<option value="">كل الشعب</option>';
+            document.getElementById('absenceReportResult').innerHTML = '';
+            renderAbsenceTables();
+        }
+        
+        // دالة إغلاق النافذة المنبثقة
+        function closeModal() {
+            document.querySelectorAll('.modal-backdrop').forEach(m => m.remove());
+        }
+        function searchAbsenceByClass() {
+            const grade = document.getElementById('searchGrade').value;
+            const section = document.getElementById('searchSection').value;
+            const resultDiv = document.getElementById('searchAbsenceResult');
+            if (!grade || !section) {
+                resultDiv.innerHTML = '<div class="text-red-600 font-bold py-2">يرجى اختيار الصف والشعبة</div>';
+                return;
+            }
+            const students = allStudents.filter(s =>
+                String(s.grade) === String(grade) &&
+                s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+            );
+            if (students.length === 0) {
+                resultDiv.innerHTML = '<div class="text-gray-500 py-2">لا يوجد طلبة في هذه الشعبة</div>';
+                return;
+            }
+            let html = `<table class="w-full text-sm"><thead>
+                <tr><th>الطالب</th><th>عدد الغيابات</th><th>تفاصيل الغياب</th></tr>
+            </thead><tbody>`;
+            students.forEach(student => {
+                const absences = allStudentAbsences.filter(a => a.student_id === student.id);
+                html += `<tr>
+                    <td>${student.full_name}</td>
+                    <td>${absences.length}</td>
+                    <td>${absences.map(a => `<span class="inline-block bg-gray-100 rounded px-2 py-1 m-1">${a.date}</span>`).join('')}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            resultDiv.innerHTML = html;
+        }
+        
+        // تقرير حسب نوع الغياب (غياب/مغادرة/تأخير)
+        function showAbsenceTypeReport(type) {
+            const container = document.getElementById('absenceTypeReport');
+            let filtered = allStudentAbsences.filter(a => a.absence_type === type);
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 py-2">لا توجد بيانات</div>';
+                return;
+            }
+            // تجميع حسب الصف والشعبة
+            let html = `<table class="w-full text-sm"><thead>
+                <tr><th>الصف</th><th>الشعبة</th><th>الطالب</th><th>التواريخ</th>${type==='leave'?'<th>الحصة</th>':''}${type==='late'?'<th>التأخير</th>':''}</tr>
+            </thead><tbody>`;
+            filtered.forEach(a => {
+                const student = allStudents.find(s => s.id === a.student_id) || {};
+                html += `<tr>
+                    <td>${student.grade || ''}</td>
+                    <td>${student.section || ''}</td>
+                    <td>${student.full_name || ''}</td>
+                    <td>${a.date}</td>
+                    ${type==='leave'?`<td>${a.leave_period? 'الحصة '+a.leave_period : ''}</td>`:''}
+                    ${type==='late'?`<td>${a.late_hours||0} ساعة و${a.late_minutes||0} دقيقة</td>`:''}
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
         }
 
+        function searchAbsenceByClass() {
+            const grade = document.getElementById('searchGrade').value;
+            const section = document.getElementById('searchSection').value;
+            const resultDiv = document.getElementById('searchAbsenceResult');
+            if (!grade || !section) {
+                resultDiv.innerHTML = '<div class="text-red-600 font-bold py-2">يرجى اختيار الصف والشعبة</div>';
+                return;
+            }
+            const students = allStudents.filter(s => s.grade === grade && s.section === section);
+            if (students.length === 0) {
+                resultDiv.innerHTML = '<div class="text-gray-500 py-2">لا يوجد طلبة في هذه الشعبة</div>';
+                return;
+            }
+            let html = `<table class="w-full text-sm"><thead>
+                <tr><th>الطالب</th><th>عدد الغيابات</th><th>تفاصيل الغياب</th></tr>
+            </thead><tbody>`;
+            students.forEach(student => {
+                const absences = allStudentAbsences.filter(a => a.student_id === student.id);
+                html += `<tr>
+                    <td>${student.full_name}</td>
+                    <td>${absences.length}</td>
+                    <td>${absences.map(a => `<span class="inline-block bg-gray-100 rounded px-2 py-1 m-1">${a.date}</span>`).join('')}</td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            resultDiv.innerHTML = html;
+        }
+        
+        // تقرير حسب نوع الغياب (غياب/مغادرة/تأخير)
+        function showAbsenceTypeReport(type) {
+            const container = document.getElementById('absenceTypeReport');
+            let filtered = allStudentAbsences.filter(a => a.absence_type === type);
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 py-2">لا توجد بيانات</div>';
+                return;
+            }
+            // تجميع حسب الصف والشعبة
+            let html = `<table class="w-full text-sm"><thead>
+                <tr><th>الصف</th><th>الشعبة</th><th>الطالب</th><th>التواريخ</th>${type==='leave'?'<th>الحصة</th>':''}${type==='late'?'<th>التأخير</th>':''}</tr>
+            </thead><tbody>`;
+            filtered.forEach(a => {
+                const student = allStudents.find(s => s.id === a.student_id) || {};
+                html += `<tr>
+                    <td>${student.grade || ''}</td>
+                    <td>${student.section || ''}</td>
+                    <td>${student.full_name || ''}</td>
+                    <td>${a.date}</td>
+                    ${type==='leave'?`<td>${a.leave_period? 'الحصة '+a.leave_period : ''}</td>`:''}
+                    ${type==='late'?`<td>${a.late_hours||0} ساعة و${a.late_minutes||0} دقيقة</td>`:''}
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
         function displayTeacherInfo() {
             const teacherInfo = document.getElementById('teacherInfo');
             teacherInfo.innerHTML = `
@@ -2580,8 +3255,10 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                 container.innerHTML = '<div class="text-center text-red-600 font-bold py-6">يرجى اختيار الصف والشعبة</div>';
                 return;
             }
+            // تطابق جزئي للشعبة بدون كلمة أكاديمي
+            const sectionCompare = section.replace(' أكاديمي', '').trim();
             const students = allStudents
-                .filter(s => s.grade === grade && s.section === section)
+                .filter(s => String(s.grade) === String(grade) && s.section && s.section.replace(' أكاديمي', '').trim() === sectionCompare)
                 .sort((a, b) => a.full_name.trim().localeCompare(b.full_name.trim(), 'ar', { sensitivity: 'base' }));
             if (students.length === 0) {
                 container.innerHTML = '<div class="text-center text-gray-500 py-6">لا يوجد طلبة في هذه الشعبة</div>';
@@ -2592,17 +3269,27 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                     ${students.map(student => {
                         const absences = allStudentAbsences.filter(a => a.student_id === student.id).length;
                         let color = 'green';
-                        if (absences >= 15 && absences < 20) color = 'yellow';
+                        if (absences >= 15 && absences < 20) color = 'orange';
                         else if (absences >= 20) color = 'red';
                         return `
                             <div class="flex items-center justify-between bg-white p-4 rounded-lg mb-2 border">
                                 <label class="flex items-center gap-2">
                                     <input type="checkbox" name="absentStudent" value="${student.id}">
-                                    <span>${student.full_name}</span>
+                                    <span>
+                                        ${student.full_name}
+                                        <span class="px-2 py-1 rounded-full font-bold ml-2" style="background:${color==='green'?'#22c55e':color==='orange'?'#f59e0b':'#ef4444'};color:white;">
+                                            ${absences} / 20 يوم
+                                        </span>
+                                    </span>
                                 </label>
-                                <span class="px-3 py-1 rounded-full font-bold" style="background:${color};color:white;">
-                                    ${absences} / 20 يوم
-                                </span>
+                                <select name="absenceType_${student.id}" class="border rounded px-2 py-1 mx-2">
+                                    <option value="absence">غياب كامل</option>
+                                    <option value="leave">مغادرة</option>
+                                    <option value="late">تأخير</option>
+                                </select>
+                                <input type="number" name="leavePeriod_${student.id}" class="border rounded px-2 py-1 mx-1" placeholder="حصة المغادرة" min="1" max="7" style="width:90px;display:none;">
+                                <input type="number" name="lateHours_${student.id}" class="border rounded px-2 py-1 mx-1" placeholder="ساعات تأخير" min="0" style="width:80px;display:none;">
+                                <input type="number" name="lateMinutes_${student.id}" class="border rounded px-2 py-1 mx-1" placeholder="دقائق تأخير" min="0" max="59" style="width:80px;display:none;">
                             </div>
                         `;
                     }).join('')}
@@ -2611,6 +3298,28 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                     </button>
                 </form>
             `;
+            // تفعيل الحقول حسب نوع الغياب لكل طالب
+            students.forEach(student => {
+                const select = document.querySelector(`select[name="absenceType_${student.id}"]`);
+                const leaveInput = document.querySelector(`input[name="leavePeriod_${student.id}"]`);
+                const lateHoursInput = document.querySelector(`input[name="lateHours_${student.id}"]`);
+                const lateMinutesInput = document.querySelector(`input[name="lateMinutes_${student.id}"]`);
+                select.addEventListener('change', function() {
+                    if (this.value === 'leave') {
+                        leaveInput.style.display = 'inline-block';
+                        lateHoursInput.style.display = 'none';
+                        lateMinutesInput.style.display = 'none';
+                    } else if (this.value === 'late') {
+                        leaveInput.style.display = 'none';
+                        lateHoursInput.style.display = 'inline-block';
+                        lateMinutesInput.style.display = 'inline-block';
+                    } else {
+                        leaveInput.style.display = 'none';
+                        lateHoursInput.style.display = 'none';
+                        lateMinutesInput.style.display = 'none';
+                    }
+                });
+            });
         }
 
         async function recordSelectedAbsences() {
@@ -2625,18 +3334,28 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             try {
                 for (const input of checked) {
                     const studentId = input.value;
+                    const type = document.querySelector(`select[name="absenceType_${studentId}"]`).value;
+                    const leavePeriod = document.querySelector(`input[name="leavePeriod_${studentId}"]`).value;
+                    const lateHours = document.querySelector(`input[name="lateHours_${studentId}"]`).value;
+                    const lateMinutes = document.querySelector(`input[name="lateMinutes_${studentId}"]`).value;
+                    const insertObj = {
+                        student_id: studentId,
+                        date: today,
+                        recorded_by: currentUser.id,
+                        absence_type: type,
+                        leave_period: type === 'leave' ? Number(leavePeriod) : null,
+                        late_hours: type === 'late' ? Number(lateHours) : null,
+                        late_minutes: type === 'late' ? Number(lateMinutes) : null
+                    };
                     const { error } = await supabase
                         .from('student_absences')
-                        .insert([{
-                            student_id: studentId,
-                            date: today,
-                            recorded_by: currentUser.id
-                        }]);
+                        .insert([insertObj]);
                     if (error) throw error;
                 }
                 showNotification('تم رصد الغياب للطلبة المحددين', 'success');
-                await loadStudentAbsences();
                 loadAbsenceStudents();
+                if (typeof showAdminAbsenceReport === 'function') showAdminAbsenceReport();
+                if (typeof loadStudentAbsenceReport === 'function') loadStudentAbsenceReport();
             } catch (error) {
                 showNotification('حدث خطأ أثناء رصد الغياب', 'error');
             }
@@ -2759,7 +3478,6 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                 `;
             }
             
-            // ...existing code...
             // Show recent penalties
             const penaltyTypes = {
                     'warning': 'تنبيه',
@@ -2852,7 +3570,6 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                                     <i class="fas fa-flag text-pink-500 mr-2"></i>
                                     <span><strong>الجنسية:</strong> <span class="editable-field" data-field="nationality">${student.nationality}</span></span>
                                 </div>
-                                ${!isTeacher ? `
                                 <div class="flex items-center">
                                     <i class="fas fa-id-card text-gray-500 mr-2"></i>
                                     <span><strong>الرقم الوطني:</strong> <span class="editable-field" data-field="national_id">${student.national_id}</span></span>
@@ -2865,7 +3582,6 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                                     <i class="fas fa-key text-gray-500 mr-2"></i>
                                     <span><strong>كلمة المرور:</strong> <span class="editable-field" data-field="password">••••••</span></span>
                                 </div>
-                                ` : ''}
                                 <div class="flex items-center">
                                     <i class="fas fa-user-tie text-teal-500 mr-2"></i>
                                     <span><strong>ولي الأمر:</strong> <span class="editable-field" data-field="guardian_name">${student.guardian_name}</span></span>
@@ -4864,6 +5580,148 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             document.body.appendChild(modal);
         }
 
+        function showComprehensiveAbsenceReport() {
+            document.getElementById('adminDailyAbsenceReport').style.display = 'none';
+            const container = document.getElementById('adminComprehensiveAbsenceReport');
+            container.style.display = 'block';
+            // استخدم نفس كود renderAbsenceTables لكن ضع الناتج في container
+            const absences = allStudentAbsences;
+            const grades = ['10', '11', '12'];
+            const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+            let html = '';
+            grades.forEach(grade => {
+                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                for (let i = 0; i < maxSections; i++) {
+                    const sectionName = `${gradeText} ${arabicLetters[i]}`;
+                    const students = allStudents.filter(s => s.section === sectionName);
+                    if (students.length === 0) continue;
+                    const absencesInSection = absences.filter(a => students.some(s => s.id === a.student_id));
+                    const dates = [...new Set(absencesInSection.map(a => a.date))].sort();
+                    html += `<div class="mb-8">
+                        <h4 class="font-bold text-indigo-800 text-lg mb-2"><i class="fas fa-layer-group mr-2"></i> ${sectionName}</h4>
+                        <div class="overflow-x-auto">
+                        <table class="absence-table w-full text-xs border">
+                            <thead>
+                                <tr>
+                                    <th>الطالب</th>
+                                    ${dates.map(date => {
+                                        const dayName = new Date(date).toLocaleDateString('ar-EG', { weekday: 'long' });
+                                        return `<th>${date}<br><span style="font-size:11px;color:#888">${dayName}</span></th>`;
+                                    }).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${students.map(student => `
+                                    <tr>
+                                        <td class="font-bold">${student.full_name}</td>
+                                        ${dates.map(date => {
+                                            const absence = absencesInSection.find(a => a.student_id === student.id && a.date === date);
+                                            if (!absence) return `<td></td>`;
+                                            let typeText = absence.absence_type === 'absence' ? 'غياب' : absence.absence_type === 'leave' ? 'مغادرة' : 'تأخير';
+                                            let color = absence.absence_type === 'absence' ? '#ef4444' : absence.absence_type === 'leave' ? '#f59e0b' : '#fbbf24';
+                                            return `<td style="background:${color};color:white;font-weight:bold">${typeText}</td>`;
+                                        }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        </div>
+                    </div>`;
+                }
+            });
+                        // توليد الشعب عند اختيار المرحلة
+            document.getElementById('absenceStageSelect').onchange = function() {
+                const grade = this.value;
+                const sectionSelect = document.getElementById('absenceSectionSelect');
+                sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+                if (grade) {
+                    const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                    let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                    let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                    for (let i = 0; i < maxSections; i++) {
+                        sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                    }
+                }
+            };
+            
+            // توليد الأشهر من تاريخ 24/8/2025
+            function populateMonths() {
+                const monthSelect = document.getElementById('absenceMonthSelect');
+                monthSelect.innerHTML = '';
+                const startDate = new Date('2025-08-24');
+                const today = new Date();
+                let months = [];
+                let d = new Date(startDate);
+                while (d <= today) {
+                    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                    d.setMonth(d.getMonth() + 1);
+                }
+                months.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+                });
+            }
+            populateMonths();
+            container.innerHTML = html;
+        }
+
+        function showMonthlyAbsenceTable() {
+            const grade = document.getElementById('absenceStageSelect').value;
+            const section = document.getElementById('absenceSectionSelect').value;
+            const monthVal = document.getElementById('absenceMonthSelect').value;
+            const container = document.getElementById('monthlyAbsenceTable');
+            if (!grade || !section || !monthVal) {
+                container.innerHTML = '';
+                return;
+            }
+            const [year, month] = monthVal.split('-').map(Number);
+            let days = [];
+            let firstDay = new Date(year, month - 1, 1);
+            let lastDay = new Date(year, month, 0);
+            for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+                if (d < new Date('2025-08-24')) continue;
+                days.push(new Date(d));
+            }
+            const students = allStudents.filter(s =>
+                String(s.grade) === String(grade) &&
+                s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+            );
+            if (students.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-500 py-6">لا يوجد طلبة في هذه الشعبة</div>';
+                return;
+            }
+            let html = `<div class="overflow-x-auto"><table class="absence-table w-full text-xs border">
+                <thead>
+                    <tr>
+                        <th>الطالب</th>
+                        ${days.map(day => {
+                            const dateStr = day.toISOString().split('T')[0];
+                            const dayName = day.toLocaleDateString('ar-EG', { weekday: 'long' });
+                            return `<th>${dateStr}<br><span style="font-size:11px;color:#888">${dayName}</span></th>`;
+                        }).join('')}
+                        <th>تقرير مفصل</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${students.map(student => `
+                        <tr>
+                            <td class="font-bold">${student.full_name}</td>
+                            ${days.map(day => {
+                                const dateStr = day.toISOString().split('T')[0];
+                                const absence = allStudentAbsences.find(a => a.student_id === student.id && a.date === dateStr);
+                                if (!absence) return `<td style="background:#22c55e;color:white;font-weight:bold">حضور</td>`;
+                                let color = absence.absence_type === 'absence' ? '#ef4444' : absence.absence_type === 'leave' ? '#f59e0b' : '#fbbf24';
+                                let typeText = absence.absence_type === 'absence' ? 'غياب' : absence.absence_type === 'leave' ? 'مغادرة' : 'تأخير';
+                                return `<td style="background:${color};color:white;font-weight:bold">${typeText}</td>`;
+                            }).join('')}
+                            <td><button onclick="showStudentAbsenceDetails('${student.id}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">عرض</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table></div>`;
+            container.innerHTML = html;
+        }
+
         function editTeacherProfile() {
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center z-50';
@@ -5012,7 +5870,10 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
                 const religion = student.religion || 'غير محدد';
 
                 stats.gradeDistribution[grade] = (stats.gradeDistribution[grade] || 0) + 1;
-                stats.sectionDistribution[section] = (stats.sectionDistribution[section] || 0) + 1;
+                const students = allStudents.filter(s =>
+                    String(s.grade) === String(grade) &&
+                    s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+                );
                 stats.nationalityDistribution[nationality] = (stats.nationalityDistribution[nationality] || 0) + 1;
                 stats.religionDistribution[religion] = (stats.religionDistribution[religion] || 0) + 1;
             });
@@ -5353,8 +6214,11 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             
             grid.innerHTML = sections.map(section => {
                 const isOpen = isRegistrationAllowed(section);
-                const studentCount = allStudents.filter(s => s.section === section).length;
-                
+                const students = allStudents.filter(s =>
+                    String(s.grade) === String(grade) &&
+                    s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+                );
+                const studentCount = students.length;
                 return `
                     <div class="bg-white p-4 rounded-lg border ${isOpen ? 'border-green-200' : 'border-red-200'}">
                         <div class="flex justify-between items-center mb-2">
@@ -5631,6 +6495,75 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
         document.body.appendChild(modal);
     }
 
+        // تقرير الغياب اليومي لكل صف في حساب المسؤول
+    function showDailyAbsenceReportForAdmin() {
+        const grades = ['10', '11', '12'];
+        const arabicLetters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و', 'ز', 'ح'];
+        const today = new Date().toISOString().split('T')[0];
+        let html = `<h4 class="font-bold text-blue-800 mb-2 mt-4"><i class="fas fa-calendar-day mr-2"></i> الغياب اليومي حسب الصف والشعبة</h4>`;
+        grades.forEach(grade => {
+            let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+            let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+            html += `<div class="mb-4"><h5 class="font-semibold text-indigo-700">${gradeText}</h5>`;
+            for (let i = 0; i < maxSections; i++) {
+                const section = `${gradeText} ${arabicLetters[i]}`;
+                const students = allStudents.filter(s =>
+                    String(s.grade) === String(grade) &&
+                    s.section && s.section.replace(' أكاديمي', '').trim() === section.replace(' أكاديمي', '').trim()
+                );
+                const absToday = allStudentAbsences.filter(a =>
+                    a.date === today &&
+                    students.some(s => s.id === a.student_id)
+                );
+                html += `
+                    <div class="bg-gray-50 p-2 rounded mb-1 flex justify-between items-center">
+                        <span class="font-bold">${section}</span>
+                        <span class="text-blue-700 font-bold">${absToday.length} غياب اليوم</span>
+                        <span class="text-xs text-gray-700">${absToday.map(a => {
+                            const student = allStudents.find(s => s.id === a.student_id);
+                            return student ? student.full_name : '';
+                        }).filter(n => n).join(', ')}</span>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+        });
+        document.getElementById('adminDailyAbsenceReport').innerHTML = html;
+    
+                // توليد الشعب عند اختيار المرحلة
+        document.getElementById('absenceStageSelect').onchange = function() {
+            const grade = this.value;
+            const sectionSelect = document.getElementById('absenceSectionSelect');
+            sectionSelect.innerHTML = '<option value="">اختر الشعبة</option>';
+            if (grade) {
+                const arabicLetters = ['أ','ب','ج','د','هـ','و','ز','ح'];
+                let maxSections = grade === '10' ? 4 : grade === '11' ? 8 : 6;
+                let gradeText = grade === '10' ? 'العاشر' : grade === '11' ? 'الحادي عشر أكاديمي' : 'الثاني عشر أكاديمي';
+                for (let i = 0; i < maxSections; i++) {
+                    sectionSelect.innerHTML += `<option value="${gradeText} ${arabicLetters[i]}">${gradeText} ${arabicLetters[i]}</option>`;
+                }
+            }
+        };
+        
+        // توليد الأشهر من تاريخ 24/8/2025
+        function populateMonths() {
+            const monthSelect = document.getElementById('absenceMonthSelect');
+            monthSelect.innerHTML = '';
+            const startDate = new Date('2025-08-24');
+            const today = new Date();
+            let months = [];
+            let d = new Date(startDate);
+            while (d <= today) {
+                months.push({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                d.setMonth(d.getMonth() + 1);
+            }
+            months.forEach(m => {
+                monthSelect.innerHTML += `<option value="${m.year}-${m.month}">${m.year}/${m.month}</option>`;
+            });
+        }
+        populateMonths();
+    }
+
     async function submitStudentNote(event) {
         event.preventDefault();
         const noteType = document.getElementById('studentNoteType').value;
@@ -5811,11 +6744,10 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             showAdminAbsenceReport();
             return;
         }
-        // ابحث عن الطلبة الذين يحتوي اسمهم على المقطع المدخل
+        // ابحث عن الطلبة الذين يحتوي اسمهم على جزء أو أكثر من البحث
         const matchedStudents = allStudents.filter(s =>
             s.full_name && s.full_name.replace(/\s+/g, '').toLowerCase().includes(searchTerm)
         );
-        // جلب غيابات الطلبة المطابقين
         let html = '';
         if (matchedStudents.length === 0) {
             html = '<div class="text-center text-red-600 font-bold py-6">لا يوجد طالب بهذا الاسم</div>';
@@ -5823,10 +6755,15 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
             html = matchedStudents.map(student => {
                 const absences = allStudentAbsences.filter(a => a.student_id === student.id);
                 return `
-                    <div class="bg-gray-50 p-4 rounded-lg mb-4">
-                        <div class="font-bold text-blue-800 mb-2">${student.full_name} <span class="text-sm text-gray-500">(${student.section || ''})</span></div>
-                        <div><span class="font-bold">${absences.length}</span> يوم غياب</div>
-                        <div class="mt-2 text-sm text-gray-700">${absences.map(a => `<span class="mr-2">${a.date}</span>`).join('')}</div>
+                    <div class="bg-gray-50 p-4 rounded-lg mb-4 flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-blue-800 mb-2">${student.full_name} <span class="text-sm text-gray-500">(${student.section || ''})</span></div>
+                            <div><span class="font-bold">${absences.length}</span> يوم غياب</div>
+                            <div class="mt-2 text-sm text-gray-700">${absences.map(a => `<span class="mr-2">${a.date}</span>`).join('')}</div>
+                        </div>
+                        <button onclick="showStudentAbsenceDetails('${student.id}')" class="bg-blue-600 text-white px-4 py-2 rounded font-semibold">
+                            رؤية تقرير دوام الطالب الكلي
+                        </button>
                     </div>
                 `;
             }).join('');
@@ -5849,6 +6786,23 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
         return false;
     }
 });
+    
+    async function loadStudentAbsenceReport() {
+        await loadStudentAbsences();
+        if (!currentUser) return;
+        const absences = allStudentAbsences.filter(a => a.student_id === currentUser.id);
+        const tbody = document.getElementById('studentAbsenceReportBody');
+        if (!tbody) return;
+        tbody.innerHTML = absences.map(a => `
+            <tr>
+                <td>${a.date}</td>
+                <td>${a.absence_type === 'absence' ? 'غياب كامل' : a.absence_type === 'leave' ? 'مغادرة' : 'تأخير'}</td>
+                <td>${a.absence_type === 'leave' ? (a.leave_period ? 'الحصة ' + a.leave_period : '-') : '-'}</td>
+                <td>${a.absence_type === 'late' ? `${a.late_hours || 0} ساعة و${a.late_minutes || 0} دقيقة` : '-'}</td>
+            </tr>
+        `).join('');
+    }
+
     
     function updateNotifTargetOptions() {
       const type = document.getElementById('notifTargetType').value;
@@ -5936,6 +6890,52 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
       await supabase.from('notifications').delete().eq('id', id);
       loadNotificationsList();
     }
+    function showSectionAbsenceTable(section) {
+        const container = document.getElementById('sectionAbsenceTable');
+        if (!section) {
+            container.innerHTML = '';
+            return;
+        }
+        // تطابق جزئي للشعبة (بدون كلمة أكاديمي)
+        const sectionCompare = section.replace(' أكاديمي', '').trim();
+        const students = allStudents.filter(s => 
+        s.section && s.section.replace(' أكاديمي', '').trim() === sectionCompare
+        );
+        if (students.length === 0) {
+            container.innerHTML = '<div class="text-center text-gray-500 py-6">لا يوجد طلبة في هذه الشعبة</div>';
+            return;
+        }
+        const absencesInSection = allStudentAbsences.filter(a => students.some(s => s.id === a.student_id));
+        const dates = [...new Set(absencesInSection.map(a => a.date))].sort();
+        let html = `<div class="overflow-x-auto"><table class="absence-table w-full text-xs border">
+            <thead>
+                <tr>
+                    <th>الطالب</th>
+                    ${dates.map(date => {
+                        const dayName = new Date(date).toLocaleDateString('ar-EG', { weekday: 'long' });
+                        return `<th>${date}<br><span style="font-size:11px;color:#888">${dayName}</span></th>`;
+                    }).join('')}
+                    <th>تقرير مفصل</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${students.map(student => `
+                    <tr>
+                        <td class="font-bold">${student.full_name}</td>
+                        ${dates.map(date => {
+                            const absence = absencesInSection.find(a => a.student_id === student.id && a.date === date);
+                            if (!absence) return `<td style="background:#22c55e;color:white;font-weight:bold">حضور</td>`;
+                            let color = absence.absence_type === 'absence' ? '#ef4444' : absence.absence_type === 'leave' ? '#f59e0b' : '#fbbf24';
+                            let typeText = absence.absence_type === 'absence' ? 'غياب' : absence.absence_type === 'leave' ? 'مغادرة' : 'تأخير';
+                            return `<td style="background:${color};color:white;font-weight:bold">${typeText}</td>`;
+                        }).join('')}
+                        <td><button onclick="showStudentAbsenceDetails('${student.id}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">عرض</button></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table></div>`;
+        container.innerHTML = html;
+    }
 
     function insertEmojiToNotifMessage() {
       const emoji = document.getElementById('emojiPicker').value;
@@ -5955,6 +6955,3 @@ penaltiesContainer.innerHTML = penalties.map(penalty => `
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'971533ab22a38e11',t:'MTc1NTU1OTg1Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>
-
-
-    
